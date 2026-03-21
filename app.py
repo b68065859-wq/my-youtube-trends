@@ -1,8 +1,17 @@
+"""
+pip install streamlit google-api-python-client pandas streamlit-extras
+"""
 import streamlit as st
 import googleapiclient.discovery
 import pandas as pd
 from datetime import datetime, timedelta
 import re, json, os, hashlib, base64, uuid
+
+# ── Cookies uchun: pip install streamlit-extras
+try:
+    from streamlit_extras.add_vertical_space import add_vertical_space
+except:
+    pass
 
 # ============================================================
 # КОНФИГ
@@ -22,58 +31,83 @@ ADMIN_DB           = {"baho123": "qWe83664323546"}
 st.set_page_config(page_title="ABS Viral 777", page_icon="📈", layout="wide")
 
 # ============================================================
-# CSS — барча матнлар оқ, sidebar ҳам тўғри
+# CSS — TO'LIQ QAYTA YOZILDI
 # ============================================================
 st.markdown("""
 <style>
+/* ===== RESET ===== */
+*, *::before, *::after { box-sizing: border-box; }
+
 /* ===== GLOBAL ===== */
-html, body, [class*="css"], .stApp {
+html, body { background-color: #0e1117 !important; color: #ffffff !important; }
+.stApp, .main, .block-container {
     background-color: #0e1117 !important;
     color: #ffffff !important;
 }
 
 /* ===== SIDEBAR ===== */
-section[data-testid="stSidebar"] {
+[data-testid="stSidebar"], [data-testid="stSidebar"] > div {
     background-color: #161b22 !important;
 }
-section[data-testid="stSidebar"] * {
+[data-testid="stSidebar"] p,
+[data-testid="stSidebar"] span,
+[data-testid="stSidebar"] label,
+[data-testid="stSidebar"] div,
+[data-testid="stSidebar"] h1,
+[data-testid="stSidebar"] h2,
+[data-testid="stSidebar"] h3 {
     color: #ffffff !important;
 }
-section[data-testid="stSidebar"] .stTextInput input {
-    background-color: #1c1f26 !important;
-    color: #ffffff !important;
-    border: 1px solid #444 !important;
-}
-section[data-testid="stSidebar"] .stSelectbox div[data-baseweb="select"] {
-    background-color: #1c1f26 !important;
-    color: #ffffff !important;
-}
-section[data-testid="stSidebar"] .stSelectbox svg { fill: #ffffff !important; }
-section[data-testid="stSidebar"] label { color: #ffffff !important; }
-section[data-testid="stSidebar"] p { color: #ffffff !important; }
 
-/* ===== MAIN INPUTS ===== */
-.stTextInput input, .stSelectbox div {
+/* ===== INPUTS ===== */
+input, textarea, [data-baseweb="input"] input {
     background-color: #1c1f26 !important;
     color: #ffffff !important;
-    border: 1px solid #333 !important;
+    border-color: #444 !important;
+}
+[data-baseweb="input"] {
+    background-color: #1c1f26 !important;
+}
+
+/* ===== SELECTBOX ===== */
+[data-baseweb="select"] > div,
+[data-baseweb="popover"] {
+    background-color: #1c1f26 !important;
+    color: #ffffff !important;
+}
+[data-baseweb="select"] span,
+[data-baseweb="option"] {
+    color: #ffffff !important;
 }
 
 /* ===== RADIO ===== */
-.stRadio label, .stRadio div, .stRadio p,
+[role="radiogroup"] label,
+[role="radiogroup"] p,
+[role="radiogroup"] span,
 div[data-testid="stRadio"] label,
 div[data-testid="stRadio"] p {
     color: #ffffff !important;
 }
 
-/* ===== TABS ===== */
-.stTabs [data-baseweb="tab"] {
-    color: #aaaaaa !important;
-    background: transparent !important;
+/* ===== SLIDER ===== */
+[data-testid="stSlider"] p,
+[data-testid="stSlider"] label,
+[data-testid="stSlider"] span {
+    color: #ffffff !important;
 }
-.stTabs [aria-selected="true"] {
+
+/* ===== TABS ===== */
+[data-baseweb="tab-list"] {
+    background-color: #0e1117 !important;
+    border-bottom: 1px solid #333 !important;
+}
+[data-baseweb="tab"] {
+    color: #aaaaaa !important;
+    background-color: transparent !important;
+}
+[aria-selected="true"][data-baseweb="tab"] {
     color: #FF0000 !important;
-    border-bottom: 2px solid #FF0000 !important;
+    border-bottom: 3px solid #FF0000 !important;
 }
 
 /* ===== BUTTONS ===== */
@@ -85,47 +119,75 @@ div[data-testid="stRadio"] p {
     text-transform: uppercase !important;
     border: none !important;
     height: 3.2em !important;
-    transition: 0.3s !important;
+    width: 100% !important;
+    transition: all 0.3s !important;
+    font-size: 14px !important;
 }
 .stButton > button:hover {
     transform: translateY(-2px) !important;
-    box-shadow: 0 8px 20px rgba(255,0,0,0.45) !important;
+    box-shadow: 0 8px 24px rgba(255,0,0,0.5) !important;
 }
 .stButton > button:disabled {
-    background: #333 !important;
-    color: #666 !important;
+    background: #2a2a2a !important;
+    color: #555 !important;
 }
 
 /* ===== DATAFRAME ===== */
-.stDataFrame, div[data-testid="stTable"] {
+[data-testid="stDataFrame"],
+[data-testid="stDataFrame"] * {
+    background-color: #1c1f26 !important;
+    color: #ffffff !important;
+}
+
+/* ===== ALERTS ===== */
+[data-testid="stAlert"] {
     background-color: #1c1f26 !important;
     color: #ffffff !important;
     border-radius: 10px !important;
 }
 
-/* ===== METRIC CARD ===== */
+/* ===== CAPTION / MARKDOWN ===== */
+[data-testid="stMarkdownContainer"] p,
+[data-testid="stCaptionContainer"] p,
+.stCaption { color: #cccccc !important; }
+
+/* ===== EXPANDER ===== */
+[data-testid="stExpander"] {
+    background-color: #1c1f26 !important;
+    border: 1px solid #333 !important;
+    border-radius: 10px !important;
+}
+[data-testid="stExpander"] summary p,
+[data-testid="stExpander"] p { color: #ffffff !important; }
+
+/* ===== TABLE ===== */
+table { background-color: #1c1f26 !important; color: #ffffff !important; }
+th { background-color: #252830 !important; color: #ffffff !important; }
+td { color: #dddddd !important; }
+
+/* ===== DIVIDER ===== */
+hr { border-color: #333 !important; margin: 12px 0 !important; }
+
+/* ===== CUSTOM CARDS ===== */
 .metric-card {
     background: #1c1f26;
     border: 1px solid #2d3139;
     border-radius: 14px;
-    padding: 18px;
+    padding: 16px;
     text-align: center;
 }
-.metric-value { font-size: 24px; font-weight: 900; color: #FF0000; }
-.metric-label { color: #8a8d97; font-size: 12px; text-transform: uppercase; margin-top: 4px; }
+.metric-value { font-size: 22px; font-weight: 900; color: #FF0000; }
+.metric-label { color: #8a8d97; font-size: 11px; text-transform: uppercase; margin-top: 4px; }
 
-/* ===== VIRAL SCORE ===== */
 .niche-score {
     background: linear-gradient(135deg, #1e1e26, #111116);
     border: 2px solid #FF0000;
-    color: white;
-    padding: 30px;
-    border-radius: 20px;
+    padding: 28px;
+    border-radius: 18px;
     text-align: center;
-    margin-bottom: 24px;
+    margin-bottom: 22px;
 }
 
-/* ===== SUBSCRIPTION BOX ===== */
 .subscription-box {
     background: linear-gradient(135deg, #1a1a2e, #16213e);
     border: 2px solid #FF0000;
@@ -135,71 +197,79 @@ div[data-testid="stRadio"] p {
     margin: 20px 0;
 }
 .pay-btn-payme {
-    display: inline-block;
-    background: #00AAFF;
-    color: #ffffff !important;
-    padding: 14px 32px;
-    border-radius: 12px;
-    font-weight: 900;
-    font-size: 16px;
-    text-decoration: none !important;
-    margin: 8px 6px;
+    display: inline-block; background: #00AAFF;
+    color: #ffffff !important; padding: 14px 30px;
+    border-radius: 12px; font-weight: 900; font-size: 15px;
+    text-decoration: none !important; margin: 8px 6px;
 }
 .pay-btn-click {
-    display: inline-block;
-    background: #FF6600;
-    color: #ffffff !important;
-    padding: 14px 32px;
-    border-radius: 12px;
-    font-weight: 900;
-    font-size: 16px;
-    text-decoration: none !important;
-    margin: 8px 6px;
+    display: inline-block; background: #FF6600;
+    color: #ffffff !important; padding: 14px 30px;
+    border-radius: 12px; font-weight: 900; font-size: 15px;
+    text-decoration: none !important; margin: 8px 6px;
 }
-
-/* ===== STATUS BADGES ===== */
 .badge-trial {
-    background: #1c1f26;
-    border: 1px solid #FF9944;
-    border-radius: 10px;
-    padding: 10px 14px;
-    color: #FF9944 !important;
-    font-weight: 700;
-    font-size: 14px;
-    margin-top: 8px;
+    background: #1c1f26; border: 1px solid #FF9944;
+    border-radius: 10px; padding: 10px 14px;
+    color: #FF9944; font-weight: 700; font-size: 14px;
 }
 .badge-active {
-    background: #0d2818;
-    border: 1px solid #00FF88;
-    border-radius: 10px;
-    padding: 10px 14px;
-    color: #00FF88 !important;
-    font-weight: 700;
-    font-size: 14px;
-    margin-top: 8px;
+    background: #0d2818; border: 1px solid #00FF88;
+    border-radius: 10px; padding: 10px 14px;
+    color: #00FF88; font-weight: 700; font-size: 14px;
 }
 .badge-expired {
-    background: #2a1010;
-    border: 1px solid #FF4444;
-    border-radius: 10px;
-    padding: 10px 14px;
-    color: #FF4444 !important;
-    font-weight: 700;
-    font-size: 14px;
-    margin-top: 8px;
+    background: #2a1010; border: 1px solid #FF4444;
+    border-radius: 10px; padding: 10px 14px;
+    color: #FF4444; font-weight: 700; font-size: 14px;
+}
+</style>
+
+<script>
+// UID ni cookie sifatida saqlash (JavaScript orqali)
+function setCookie(name, value, days) {
+    var expires = "";
+    if (days) {
+        var date = new Date();
+        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+        expires = "; expires=" + date.toUTCString();
+    }
+    document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Strict";
+}
+function getCookie(name) {
+    var nameEQ = name + "=";
+    var ca = document.cookie.split(';');
+    for (var i = 0; i < ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+        if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+    }
+    return null;
 }
 
-/* ===== MISC ===== */
-.stMarkdown p, .stCaption, .stInfo, .stSuccess, .stWarning, .stError {
-    color: #ffffff !important;
-}
-code { color: #aaaaaa !important; }
-hr { border-color: #333 !important; }
-</style>
+// API key ni cookie dan olish va input ga yozish
+window.addEventListener('load', function() {
+    var savedKey = getCookie('yt_api_key');
+    if (savedKey) {
+        // Streamlit input larini topib qiymat berish
+        setTimeout(function() {
+            var inputs = document.querySelectorAll('input[type="password"]');
+            inputs.forEach(function(inp) {
+                if (inp.value === '' || inp.value.length < 5) {
+                    var nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+                        window.HTMLInputElement.prototype, 'value').set;
+                    nativeInputValueSetter.call(inp, savedKey);
+                    inp.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+            });
+        }, 1000);
+    }
+});
+</script>
 """, unsafe_allow_html=True)
 
 # ============================================================
-# МАЪЛУМОТЛАР БАЗАСИ (JSON — persistent)
+# МАЪЛУМОТЛАР БАЗАСИ
 # ============================================================
 def load_db():
     if os.path.exists(USERS_FILE):
@@ -212,27 +282,7 @@ def load_db():
 
 def save_db(data):
     with open(USERS_FILE, "w") as f:
-        json.dump(data, f, indent=2)
-
-def get_uid():
-    """IP yoki session UUID orqali barqaror UID olish"""
-    try:
-        from streamlit.web.server.websocket_headers import _get_websocket_headers
-        headers = _get_websocket_headers()
-        ip = headers.get("X-Forwarded-For", headers.get("X-Real-Ip", ""))
-        ip = ip.split(",")[0].strip()
-        if ip and ip != "unknown":
-            return "ip_" + hashlib.sha256(ip.encode()).hexdigest()[:28]
-    except:
-        pass
-    # Fallback: localStorage simulation via query_params
-    uid_from_url = st.query_params.get("uid", "")
-    if uid_from_url and len(uid_from_url) == 32:
-        return uid_from_url
-    # Yangi UID yaratib URL ga yozish
-    new_uid = "s_" + uuid.uuid4().hex[:30]
-    st.query_params["uid"] = new_uid
-    return new_uid
+        json.dump(data, f, indent=2, ensure_ascii=False)
 
 def get_user(uid):
     db = load_db()
@@ -295,16 +345,42 @@ def admin_activate(order_id):
     return False, None
 
 # ============================================================
+# UID — eng ishonchli usul: session_state + JSON saqlash
+# ============================================================
+def get_uid():
+    """
+    UID ni quyidagi usturvor tartibda olish:
+    1. session_state da saqlangan (RAM) — tez
+    2. query_params ?uid= — sahifa refresh da ham qoladi
+    3. Yangi UUID yaratish + URL ga yozish
+    """
+    # 1. RAM da bor
+    if "uid" in st.session_state and st.session_state["uid"]:
+        return st.session_state["uid"]
+
+    # 2. URL da bor
+    uid_param = st.query_params.get("uid", "")
+    if uid_param and len(uid_param) >= 10:
+        st.session_state["uid"] = uid_param
+        return uid_param
+
+    # 3. Yangi yaratish
+    new_uid = "u_" + uuid.uuid4().hex
+    st.session_state["uid"] = new_uid
+    st.query_params["uid"] = new_uid
+    return new_uid
+
+# ============================================================
 # ТЎЛОВ URL
 # ============================================================
 def gen_order_id():
     return f"V777_{uuid.uuid4().hex[:10].upper()}"
 
-def payme_url(order_id, amount):
+def make_payme_url(order_id, amount):
     params = f"m={PAYME_MERCHANT_ID};ac.order_id={order_id};a={amount * 100}"
     return f"https://checkout.paycom.uz/{base64.b64encode(params.encode()).decode()}"
 
-def click_url(order_id, amount):
+def make_click_url(order_id, amount):
     return (f"https://my.click.uz/services/pay?"
             f"service_id={CLICK_SERVICE_ID}&merchant_id={CLICK_MERCHANT_ID}"
             f"&amount={amount}&transaction_param={order_id}")
@@ -321,7 +397,7 @@ def uzb_date(iso):
     M = {1:"Янв",2:"Фев",3:"Мар",4:"Апр",5:"Май",6:"Июн",
          7:"Июл",8:"Авг",9:"Сен",10:"Окт",11:"Ноя",12:"Дек"}
     try:
-        dt = datetime.strptime(re.sub(r'\.\d+Z','Z', iso), '%Y-%m-%dT%H:%M:%SZ')
+        dt = datetime.strptime(re.sub(r'\.\d+Z','Z',iso),'%Y-%m-%dT%H:%M:%SZ')
         return f"{dt.day}-{M[dt.month]}, {dt.year}"
     except:
         return iso[:10]
@@ -329,7 +405,7 @@ def uzb_date(iso):
 REGIONS = {"US":"en","GB":"en","UZ":"uz","RU":"ru","TR":"tr"}
 
 # ============================================================
-# СЕССИЯ
+# СЕССИЯ ИНИЦИАЛИЗАЦИЯ
 # ============================================================
 for k, v in [("authenticated", False), ("last_results", None),
              ("search_history", []), ("pending_order", None)]:
@@ -342,16 +418,16 @@ uid = get_uid()
 # SIDEBAR
 # ============================================================
 with st.sidebar:
-    st.image("https://upload.wikimedia.org/wikipedia/en/d/db/MrBeast_logo.svg", width=90)
-    st.markdown("## 777 VIRAL ENGINE")
+    st.markdown("## 🎯 777 VIRAL ENGINE")
+    st.divider()
 
-    # --- ADMIN LOGIN ---
+    # ADMIN LOGIN
     if not st.session_state.authenticated:
-        with st.expander("🔐 ADMIN КИРИШ"):
-            u = st.text_input("Логин", key="login_u")
-            p = st.text_input("Пароль", type="password", key="login_p")
-            if st.button("КИРИШ", key="login_btn"):
-                if ADMIN_DB.get(u) == p:
+        with st.expander("🔐 Admin Кириш"):
+            u_in = st.text_input("Логин", key="sb_login")
+            p_in = st.text_input("Пароль", type="password", key="sb_pass")
+            if st.button("КИРИШ", key="sb_btn"):
+                if ADMIN_DB.get(u_in) == p_in:
                     st.session_state.authenticated = True
                     st.rerun()
                 else:
@@ -364,12 +440,12 @@ with st.sidebar:
 
     st.divider()
 
-    # --- ОБУНА СТАТУСИ ---
+    # ОБУНА СТАТУСИ
     if not st.session_state.authenticated:
         if is_subscribed(uid):
             ud = get_user(uid)
             until_str = datetime.fromisoformat(ud["sub_until"]).strftime("%d.%m.%Y")
-            st.markdown(f"<div class='badge-active'>✅ Обуна фаол · {until_str} гача</div>",
+            st.markdown(f"<div class='badge-active'>✅ Обуна · {until_str} гача</div>",
                         unsafe_allow_html=True)
         else:
             rem = get_trial_remaining(uid)
@@ -377,23 +453,24 @@ with st.sidebar:
                 st.markdown(f"<div class='badge-trial'>🎁 Синов: {rem}/{FREE_TRIAL_LIMIT} қолди</div>",
                             unsafe_allow_html=True)
             else:
-                st.markdown(f"<div class='badge-expired'>🔒 Синов тугади — обуна керак</div>",
+                st.markdown("<div class='badge-expired'>🔒 Синов тугади</div>",
                             unsafe_allow_html=True)
 
     st.divider()
 
-    # --- API KEY (URL да сақланади) ---
+    # API KEY
     saved_key = st.query_params.get("apikey", "")
-    api_input = st.text_input("🔑 YouTube API Key:", value=saved_key, type="password")
+    api_input = st.text_input("🔑 YouTube API Key:", value=saved_key, type="password",
+                               help="Саҳифа янгиланса ҳам сақланади")
     if api_input and api_input != saved_key:
         st.query_params["apikey"] = api_input
 
-    topic    = st.text_input("🔍 Қидирув мавзуси:", "Survival")
-    region   = st.selectbox("🌍 Давлат:", list(REGIONS.keys()))
-    days_sel = st.select_slider("📅 Давр (кун):", options=[7, 30, 90, 180, 365], value=30)
+    topic     = st.text_input("🔍 Мавзу:", "Survival")
+    region    = st.selectbox("🌍 Давлат:", list(REGIONS.keys()))
+    days_sel  = st.select_slider("📅 Давр (кун):", options=[7, 30, 90, 180, 365], value=30)
     min_views = st.selectbox("👁️ Min Кўришлар:", [0, 100000, 500000, 1000000],
-                             format_func=lambda x: fmt(x) if x > 0 else "Ҳаммаси")
-    min_outl = st.slider("🔥 Min Outlier:", 1, 50, 15)
+                              format_func=lambda x: fmt(x) if x > 0 else "Ҳаммаси")
+    min_outl  = st.slider("🔥 Min Outlier:", 1, 50, 15)
 
     can_search = (st.session_state.authenticated or
                   is_subscribed(uid) or
@@ -408,7 +485,7 @@ t1, t2, t3 = st.tabs(["🚀 АСОСИЙ ТАҲЛИЛ", "📜 ҚИДИРУВ Т�
 # ─────────── TAB 1 ───────────
 with t1:
 
-    # ── ТЎЛОВ БЛОКИ (лимит тугаганда) ──
+    # ТЎЛОВ БЛОКИ
     if (not st.session_state.authenticated and
             not is_subscribed(uid) and
             get_trial_remaining(uid) == 0):
@@ -416,42 +493,36 @@ with t1:
         if not st.session_state.pending_order:
             st.session_state.pending_order = gen_order_id()
         oid   = st.session_state.pending_order
-        p_url = payme_url(oid, SUBSCRIPTION_PRICE)
-        c_url = click_url(oid, SUBSCRIPTION_PRICE)
+        p_url = make_payme_url(oid, SUBSCRIPTION_PRICE)
+        c_url = make_click_url(oid, SUBSCRIPTION_PRICE)
 
         st.markdown(f"""
         <div class='subscription-box'>
-            <div style='font-size:56px;'>🔒</div>
-            <h2 style='color:#ffffff; margin:12px 0 8px;'>Синов муддати тугади</h2>
-            <p style='color:#aaaaaa; font-size:15px; margin-bottom:20px;'>
+            <div style='font-size:54px;'>🔒</div>
+            <h2 style='color:#ffffff; margin:10px 0 6px;'>Синов муддати тугади</h2>
+            <p style='color:#aaaaaa; font-size:14px; margin-bottom:18px;'>
                 Сиз <b>{FREE_TRIAL_LIMIT} та текин қидирув</b>дан фойдаландингиз.<br>
                 Давом этиш учун ойлик обуна сотиб олинг.
             </p>
-            <div style='font-size:50px; font-weight:900; color:#FF0000; margin:20px 0;'>
+            <div style='font-size:48px; font-weight:900; color:#FF0000; margin:16px 0;'>
                 {SUBSCRIPTION_PRICE:,} сўм
             </div>
-            <p style='color:#666666; font-size:13px; margin-bottom:28px;'>
+            <p style='color:#555; font-size:13px; margin-bottom:24px;'>
                 📅 30 кун &nbsp;·&nbsp; ♾️ Чексиз қидирув &nbsp;·&nbsp; 🚀 Тўлиқ имкониятлар
             </p>
             <a href='{p_url}' target='_blank' class='pay-btn-payme'>💳 &nbsp;Payme орқали</a>
             <a href='{c_url}' target='_blank' class='pay-btn-click'>⚡ &nbsp;Click орқали</a>
             <br><br>
-            <p style='color:#444444; font-size:11px;'>
-                Буюртма ID: <code style='color:#666;'>{oid}</code>
-            </p>
+            <p style='color:#444; font-size:11px;'>Буюртма: <code style='color:#666;'>{oid}</code></p>
         </div>
         """, unsafe_allow_html=True)
 
         st.info("💡 Тўлов амалга оширилгандан сўнг қуйидаги тугмани босинг:")
-        col1, col2 = st.columns([2, 1])
-        with col1:
-            if st.button("✅ Тўловни тасдиқлаш — Admin текширади"):
-                submit_pending(uid, oid)
-                st.success(f"✅ Сўровингиз қабул қилинди!\n\n"
-                           f"Буюртма: `{oid}`\n\n"
-                           f"Admin тасдиқлагач обунангиз фаоллашади.")
+        if st.button("✅ Тўловни тасдиқлаш"):
+            submit_pending(uid, oid)
+            st.success(f"✅ Сўров қабул қилинди! Admin тасдиқлагач обунангиз фаоллашади.\n\nID: `{oid}`")
 
-    # ── ҚИДИРУВ ──
+    # ҚИДИРУВ
     if search_btn:
         current_key = st.query_params.get("apikey", "") or api_input
         if not current_key:
@@ -459,20 +530,20 @@ with t1:
         else:
             try:
                 with st.spinner("📊 YouTube таҳлил қилинмоқда..."):
-                    yt = googleapiclient.discovery.build("youtube", "v3", developerKey=current_key)
-                    pub_after = (datetime.utcnow() - timedelta(days=days_sel)).isoformat() + "Z"
+                    yt = googleapiclient.discovery.build("youtube","v3",developerKey=current_key)
+                    pub_after = (datetime.utcnow()-timedelta(days=days_sel)).isoformat()+"Z"
                     res = yt.search().list(q=topic, part="snippet", type="video",
                                           maxResults=50, order="viewCount",
                                           publishedAfter=pub_after, regionCode=region).execute()
                     results = []
                     for item in res['items']:
                         vid = item['id']['videoId']
-                        vi  = yt.videos().list(part="statistics,snippet", id=vid).execute()['items'][0]
+                        vi  = yt.videos().list(part="statistics,snippet",id=vid).execute()['items'][0]
                         ci  = yt.channels().list(part="statistics,snippet",
                                   id=item['snippet']['channelId']).execute()['items'][0]
-                        views = int(vi['statistics'].get('viewCount', 0))
-                        subs  = int(ci['statistics'].get('subscriberCount', 1))
-                        outl  = round(views / (subs if subs > 1000 else 1000), 1)
+                        views = int(vi['statistics'].get('viewCount',0))
+                        subs  = int(ci['statistics'].get('subscriberCount',1))
+                        outl  = round(views/(subs if subs>1000 else 1000),1)
                         if outl >= min_outl and views >= min_views:
                             results.append({
                                 "Расм":     vi['snippet']['thumbnails']['default']['url'],
@@ -488,32 +559,30 @@ with t1:
                     st.session_state.last_results = results
                     st.session_state.search_history.append({
                         "Вақт": datetime.now().strftime("%H:%M"),
-                        "Мавзу": topic,
-                        "Топилди": len(results)
+                        "Мавзу": topic, "Топилди": len(results)
                     })
 
-                    # ── Синов ҳисобини JSON га сақлаш ──
                     if not st.session_state.authenticated and not is_subscribed(uid):
                         use_trial(uid)
                         rem = get_trial_remaining(uid)
                         if rem > 0:
                             st.info(f"🎁 Яна **{rem}** та текин қидирув қолди")
                         else:
-                            st.warning("⚠️ Охирги текин қидирув ишлатилди! Обуна сотиб олинг.")
+                            st.warning("⚠️ Охирги синов ишлатилди! Обуна сотиб олинг.")
 
             except Exception as e:
                 st.error(f"⚠️ Хато: {e}")
 
-    # ── НАТИЖАЛАР ──
+    # НАТИЖАЛАР
     if st.session_state.last_results:
         df = pd.DataFrame(st.session_state.last_results).sort_values("Вираллик", ascending=False)
         avg_v = round(df["Вираллик"].mean(), 1) if not df.empty else 0
 
         st.markdown(f"""
         <div class='niche-score'>
-            <h1 style='color:#FF0000; font-size:52px; margin:0;'>{avg_v}x</h1>
-            <p style='color:#aaa; font-size:16px; margin:8px 0 0;'>VIRAL POTENTIAL SCORE</p>
-            <p style='color:#666; font-size:13px; margin:6px 0 0;'>
+            <h1 style='color:#FF0000;font-size:50px;margin:0;'>{avg_v}x</h1>
+            <p style='color:#aaa;font-size:15px;margin:8px 0 0;'>VIRAL POTENTIAL SCORE</p>
+            <p style='color:#555;font-size:12px;margin:4px 0 0;'>
                 Ушбу мавзудаги видеолар обуначилар сонига нисбатан ўртача {avg_v} баравар кўпроқ кўрилмоқда!
             </p>
         </div>
@@ -524,22 +593,20 @@ with t1:
         if mode == "Карточка":
             for _, row in df.iterrows():
                 c1, c2 = st.columns([1, 3])
-                with c1:
-                    st.image(row['Расм'], use_container_width=True)
+                with c1: st.image(row['Расм'], use_container_width=True)
                 with c2:
                     st.markdown(f"### [{row['Сарлавҳа']}]({row['Ҳавола']})")
                     st.caption(f"📺 {row['Канал']}  |  📅 {row['Юкланган']}")
                     m1, m2, m3 = st.columns(3)
                     for col, lbl, val in [
-                        (m1, "Вираллик", f"{row['Вираллик']}x"),
-                        (m2, "Просмотр",  fmt(row['Просмотр'])),
-                        (m3, "Обуначи",   fmt(row['Обуначи']))
+                        (m1,"Вираллик",f"{row['Вираллик']}x"),
+                        (m2,"Просмотр", fmt(row['Просмотр'])),
+                        (m3,"Обуначи",  fmt(row['Обуначи']))
                     ]:
-                        col.markdown(
-                            f"<div class='metric-card'>"
-                            f"<div class='metric-label'>{lbl}</div>"
-                            f"<div class='metric-value'>{val}</div>"
-                            f"</div>", unsafe_allow_html=True)
+                        col.markdown(f"<div class='metric-card'>"
+                                     f"<div class='metric-label'>{lbl}</div>"
+                                     f"<div class='metric-value'>{val}</div></div>",
+                                     unsafe_allow_html=True)
                 st.divider()
         else:
             dd = df.copy()
@@ -570,57 +637,46 @@ with t3:
     st.subheader("🛡️ Admin Бошқаруви")
     db = load_db()
 
-    # Pending tўlovlar
     pending = {oid: d for oid, d in db.get("pending_orders", {}).items()
                if d["status"] == "pending"}
-    st.markdown(f"### 📋 Тасдиқ кутаётган тўловлар: **{len(pending)}**")
+    st.markdown(f"### 📋 Тасдиқ кутаётган: **{len(pending)}** та тўлов")
 
     if pending:
         for oid, odata in pending.items():
             c1, c2, c3, c4 = st.columns([3, 2, 2, 1])
             c1.code(oid)
-            c2.write(odata.get("created", "")[:16])
-            c3.write(f"UID: `{odata['uid'][:10]}...`")
-            if c4.button("✅ Фаол", key=f"act_{oid}"):
+            c2.write(odata.get("created","")[:16])
+            c3.write(f"`{odata['uid'][:12]}...`")
+            if c4.button("✅", key=f"act_{oid}"):
                 ok, _ = admin_activate(oid)
-                if ok:
-                    st.success(f"✅ {oid} фаоллашди!")
-                    st.rerun()
-                else:
-                    st.error("Хато!")
+                st.success(f"✅ Фаоллашди!") if ok else st.error("Хато!")
+                st.rerun()
     else:
         st.success("✅ Тасдиқ кутаётган тўлов йўқ.")
 
     st.divider()
-
-    # Qo'lda aktivatsiya
     st.markdown("### ⚡ Қўлда Фаоллаштириш")
     c1, c2 = st.columns(2)
     m_uid  = c1.text_input("Foydalanuvchi UID:")
-    m_note = c2.text_input("Изоҳ (чек №):")
+    _      = c2.text_input("Изоҳ:")
     if st.button("🔓 Обуна Фаоллаштириш"):
         if m_uid:
-            fake_id = f"MANUAL_{uuid.uuid4().hex[:8].upper()}"
-            activate_subscription(m_uid, fake_id)
-            st.success(f"✅ Обуна {SUBSCRIPTION_DAYS} кунга фаоллашди!")
+            activate_subscription(m_uid, f"MANUAL_{uuid.uuid4().hex[:8].upper()}")
+            st.success(f"✅ {SUBSCRIPTION_DAYS} кунлик обуна фаоллашди!")
         else:
             st.error("UID киритинг!")
 
     st.divider()
-
-    # Barcha foydalanuvchilar
     st.markdown("### 👥 Барча Фойдаланувчилар")
     all_users = {k: v for k, v in db.items() if k != "pending_orders"}
     if all_users:
-        rows = []
-        for uh, ud in all_users.items():
-            rows.append({
-                "UID":      uh[:16] + "...",
-                "Синов":    f"{ud.get('trial_used',0)}/{FREE_TRIAL_LIMIT}",
-                "Обуна":    "✅ Фаол" if ud.get("subscribed") else "❌",
-                "Муддат":   ud.get("sub_until", "—")[:10] if ud.get("sub_until") else "—",
-                "Тўловлар": len(ud.get("orders", []))
-            })
+        rows = [{
+            "UID":      uh[:18]+"...",
+            "Синов":    f"{ud.get('trial_used',0)}/{FREE_TRIAL_LIMIT}",
+            "Обуна":    "✅" if ud.get("subscribed") else "❌",
+            "Муддат":   ud.get("sub_until","—")[:10] if ud.get("sub_until") else "—",
+            "Тўловлар": len(ud.get("orders",[]))
+        } for uh, ud in all_users.items()]
         st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
     else:
         st.info("Ҳали фойдаланувчилар йўқ.")
