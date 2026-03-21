@@ -5,29 +5,32 @@ from datetime import datetime, timedelta
 import re
 import isodate
 import urllib.parse
+import plotly.express as px
 
 # 1. САЙТ СОЗЛАМАЛАРИ
 st.set_page_config(page_title="ABS Viral Tracker", page_icon="🚀", layout="wide")
 
-# СЕССИЯ ХОТИРАСИ (КЕШ)
+# СЕССИЯ ХОТИРАСИ (БРАУЗЕР ЁПИЛМАГУНЧА САҚЛАНАДИ)
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 if "search_count" not in st.session_state:
     st.session_state.search_count = 0 
 if "saved_api_key" not in st.session_state:
     st.session_state.saved_api_key = ""
+if "search_history" not in st.session_state:
+    st.session_state.search_history = []
 
 # ФОЙДАЛАНУВЧИЛАР БАЗАСИ
 USER_DB = {
     "baho123": {"pass": "qWe83664323546", "role": "superadmin"},
 }
 
-# ДАВЛАТЛАР
+# ДАВЛАТЛАР ВА ТИЛЛАР
 REGION_LANGS = {"US": "en", "GB": "en", "UZ": "uz", "RU": "ru", "TR": "tr", "DE": "de"}
 
-# --- ФУНКЦИЯЛАР ---
+# --- ФУНКЦИЯЛАР (САНА ВА РАҚАМЛАР) ---
 def get_full_uzb_date(iso_date):
-    months = {1: "Январь", 2: "Февраль", 3: "Март", 4: "Апрель", 5: "Май", 6: "Июнь", 
+    months = {1: "Март", 2: "Февраль", 3: "Март", 4: "Апрель", 5: "Май", 6: "Июнь", 
               7: "Июль", 8: "Август", 9: "Сентябрь", 10: "Октябрь", 11: "Ноябрь", 12: "Декабрь"}
     try:
         dt = datetime.strptime(re.sub(r'\.\d+Z', 'Z', iso_date), '%Y-%m-%dT%H:%M:%SZ')
@@ -43,7 +46,7 @@ def format_numbers(n):
 with st.sidebar:
     st.title("🛡️ ABS Viral System")
     
-    # 1. ТИЗИМДАН ЧИҚИШ (ТЕПАДА)
+    # ЧИҚИШ ТУГМАСИ
     if st.session_state.authenticated:
         st.success(f"👤 {st.session_state.current_user}")
         if st.button("🚪 ТИЗИМДАН ЧИҚИШ", use_container_width=True):
@@ -57,47 +60,53 @@ with st.sidebar:
                 if u in USER_DB and USER_DB[u]["pass"] == p:
                     st.session_state.authenticated = True
                     st.session_state.current_user = u
+                    st.session_state.user_role = USER_DB[u]["role"]
                     st.rerun()
                 else: st.error("Хато!")
     
     st.divider()
     
-    # 2. API ВА ҚИДИРУВ
+    # API ВА ҚИДИРУВ СОЗЛАМАЛАРИ
     api_key = st.text_input("🔑 API Key:", value=st.session_state.saved_api_key, type="password")
     st.session_state.saved_api_key = api_key
     
-    topic = st.text_input("🔍 Қидирув мавзуси:", "Motivation")
+    topic = st.text_input("🔍 Мавзу:", "Survival")
     region = st.selectbox("🌍 Давлат:", list(REGION_LANGS.keys()))
     min_outl = st.slider("Min Outlier (Вираллик):", 1, 50, 5)
     
-    # 3. IP ВА ЛИМИТ ТЕКШИРУВИ (Cookie-симон хотира)
+    # ЛИМИТ ТЕКШИРУВИ (IP/СЕССИЯ БЛОКЛАШ)
     FREE_LIMIT = 3
     can_search = True
     if not st.session_state.authenticated:
         remaining = FREE_LIMIT - st.session_state.search_count
         if remaining <= 0:
-            st.error("🚨 Лимит тугади! Сиз 3 марта бепул фойдаландингиз.")
-            st.info("👉 Давом этиш учун обуна бўлинг: [Telegram Администратор](https://t.me/your_admin_link)")
+            st.error("🚨 Лимит тугади!")
+            st.info("👉 Обуна учун: [Telegram](https://t.me/your_admin_link)")
             can_search = False
         else:
             st.warning(f"🎁 Қолган имконият: {remaining}")
 
     search_btn = st.button("🚀 ТАҲЛИЛНИ БОШЛАШ", use_container_width=True, disabled=not can_search)
 
-# --- АСОСИЙ МАЗМУН ---
-tab1, tab2 = st.tabs(["📊 Viral Analysis", "📖 Қўлланма (Tutorial)"])
+# --- АСОСИЙ ПАНЕЛ (ТАБЛАР) ---
+t_list = ["🚀 Вирал Таҳлил", "📖 Қўлланма", "📜 Тарих"]
+if st.session_state.authenticated and st.session_state.user_role == "superadmin":
+    t_list.append("👨‍✈️ АДМИН")
 
-with tab1:
+tabs = st.tabs(t_list)
+
+# 1. ТАҲЛИЛ ОЙНАСИ
+with tabs[0]:
     if search_btn:
         if not api_key:
-            st.error("API калит киритилмаган!")
+            st.error("API калитни киритинг!")
         else:
             if not st.session_state.authenticated:
-                st.session_state.search_count += 1 # Лимитни камайтириш
+                st.session_state.search_count += 1
             
             try:
                 youtube = googleapiclient.discovery.build("youtube", "v3", developerKey=api_key)
-                res = youtube.search().list(q=topic, part="snippet", type="video", maxResults=20, order="viewCount", regionCode=region, relevanceLanguage=REGION_LANGS.get(region, "en")).execute()
+                res = youtube.search().list(q=topic, part="snippet", type="video", maxResults=25, order="viewCount", regionCode=region, relevanceLanguage=REGION_LANGS.get(region, "en")).execute()
                 
                 data = []
                 for item in res['items']:
@@ -109,55 +118,63 @@ with tab1:
 
                     if outlier >= min_outl:
                         data.append({
-                            "id": v_id,
                             "Расм": v_inf['snippet']['thumbnails']['high']['url'],
                             "Вираллик": outlier, "Сарлавҳа": item['snippet']['title'],
                             "Кўрилишлар": format_numbers(views), "Обуначилар": format_numbers(subs),
-                            "Юкланган сана": get_full_uzb_date(v_inf['snippet']['publishedAt']),
+                            "Сана": get_full_uzb_date(v_inf['snippet']['publishedAt']),
                             "Канал": item['snippet']['channelTitle'], "Ҳавола": f"https://www.youtube.com/watch?v={v_id}"
                         })
 
                 if data:
                     df = pd.DataFrame(data).sort_values(by="Вираллик", ascending=False)
-                    st.subheader(f"🏆 {region} бўйича Топ Натижалар")
                     
-                    # НАТИЖАЛАРНИ ЧИҚАРИШ
-                    for index, row in df.iterrows():
-                        with st.container():
-                            c1, c2 = st.columns([1, 2])
-                            with c1:
-                                st.image(row['Расм'], use_container_width=True)
-                            with c2:
-                                st.markdown(f"### {row['Сарлавҳа']}")
-                                st.write(f"📈 **Вираллик:** {row['Вираллик']}x  |  📅 **Сана:** {row['Юкланган сана']}")
-                                st.write(f"👤 **Канал:** {row['Канал']}  |  👁️ **Просмотр:** {row['Кўрилишлар']}")
-                                
-                                # ТУГМАЛАР ҚАТОРИ
-                                col_btn1, col_btn2 = st.columns([1,1])
-                                with col_btn1:
-                                    st.link_button("📺 Видеони кўриш", row['Ҳавола'], use_container_width=True)
-                                with col_btn2:
-                                    # TELEGRAM SHARE LINK
-                                    share_text = urllib.parse.quote(f"Зўр видео топдим! Вираллик: {row['Вираллик']}x\n{row['Ҳавола']}")
-                                    st.link_button("✈️ Telegram-да улашиш", f"https://t.me/share/url?url={row['Ҳавола']}&text={share_text}", use_container_width=True)
+                    # BILLBOARD (TOP 3)
+                    st.subheader(f"🏆 {region} бўйича Энг Вирал Видеолар")
+                    b_cols = st.columns(3)
+                    for i in range(min(3, len(df))):
+                        with b_cols[i]:
+                            st.image(df.iloc[i]['Расм'], use_container_width=True)
+                            st.markdown(f"🔥 **{df.iloc[i]['Вираллик']}x Outlier**")
+                            st.caption(df.iloc[i]['Сарлавҳа'][:50] + "...")
+                    st.divider()
+
+                    # ЖАДВАЛ КЎРИНИШИ ВА SHARE ТУГМАСИ
+                    for idx, row in df.iterrows():
+                        c1, c2 = st.columns([1, 2])
+                        with c1: st.image(row['Расм'], use_container_width=True)
+                        with c2:
+                            st.subheader(row['Сарлавҳа'])
+                            st.write(f"📈 **Вираллик:** {row['Вираллик']}x | 📅 **Сана:** {row['Сана']}")
+                            st.write(f"👤 **Канал:** {row['Канал']} | 👁️ **Просмотр:** {row['Кўрилишлар']}")
+                            
+                            btn_col1, btn_col2 = st.columns(2)
+                            with btn_col1: st.link_button("📺 Кўриш", row['Ҳавола'], use_container_width=True)
+                            with btn_col2:
+                                share_msg = urllib.parse.quote(f"Зўр видео топдим! Вираллик: {row['Вираллик']}x\n{row['Ҳавола']}")
+                                st.link_button("✈️ Telegram-да улашиш", f"https://t.me/share/url?url={row['Ҳавола']}&text={share_msg}", use_container_width=True)
                         st.divider()
-                else: st.warning("Вирал видео топилмади.")
-            except Exception as e: st.error(f"Хатолик: {e}")
+                else: st.warning("Видеотўплам бўш.")
+            except Exception as e: st.error(f"Хато: {e}")
 
-with tab2:
-    st.header("📖 YouTube API калит олиш бўйича Тўлиқ Қўлланма")
-    st.info("Бу жараён бир марта қилинади ва мутлақо бепул!")
+# 2. ҚЎЛЛАНМА (ВИЗУАЛ)
+with tabs[1]:
+    st.header("📖 API Калит олиш қўлланмаси")
+    st.markdown("""
+    1. **Google Cloud Console**-га киринг.
+    2. **YouTube Data API v3**-ни қидиринг ва **ENABLE** тугмасини босинг.
     
-    st.subheader("1-қадам: Google Console-га кириш")
-    st.write("Браузерда [console.cloud.google.com](https://console.cloud.google.com/) сайтига киринг.")
+    3. **Credentials** бўлимидан **API Key** яратинг.
     
+    4. Калитни нусхалаб сайтимизга қўйинг.
+    """)
 
-    st.subheader("2-қадам: YouTube API-ни фаоллаштириш")
-    st.write("Қидирув жойига 'YouTube Data API v3' деб ёзинг ва кириб 'ENABLE' тугмасини босинг.")
-    
+# 3. ТАРИХ
+with tabs[2]:
+    st.header("📜 Қидирув тарихи")
+    st.info("Бу ерда охирги қидирувлар кўринади.")
 
-    st.subheader("3-қадам: API Калитни яратиш")
-    st.write("'Credentials' бўлимига ўтиб, '+ Create Credentials' -> 'API Key'ни танланг.")
-    
-    
-    st.success("✅ Тайёр калитни нусхалаб, сайтимизга қўйинг!")
+# 4. АДМИН ПАНЕЛ
+if st.session_state.authenticated and st.session_state.user_role == "superadmin":
+    with tabs[3]:
+        st.header("👨‍✈️ Бошқарув")
+        st.write("Фойдаланувчилар статистикаси ва лимитлар шу ерда.")
