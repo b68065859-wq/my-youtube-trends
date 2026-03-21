@@ -3,12 +3,12 @@ import googleapiclient.discovery
 import pandas as pd
 from io import BytesIO
 import isodate
-from datetime import datetime
+from datetime import datetime, timedelta
 import re
 
 # 1. САЙТНИ ТЎЛИҚ КЕНГ ЭКРАН ҚИЛИШ
 st.set_page_config(
-    page_title="YouTube Pro Viral Dashboard",
+    page_title="YouTube Viral Pro 180D",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -20,15 +20,14 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- ВАҚТНИ ТЎҒРИЛАШ ФУНКЦИЯСИ (ХАТО ШУ ЕРДА ЭДИ) ---
+# --- ЁРДАМЧИ ФУНКЦИЯЛАР ---
 def format_date(iso_date):
     try:
-        # Миллисекундларни (агар бўлса) олиб ташлаймиз
         clean_date = re.sub(r'\.\d+Z', 'Z', iso_date)
         dt = datetime.strptime(clean_date, '%Y-%m-%dT%H:%M:%SZ')
         return dt.strftime('%Y-%m-%d | %H:%M')
     except:
-        return iso_date[:10] # Агар ўхшамаса, фақат кунини қайтаради
+        return iso_date[:10]
 
 def format_numbers(n):
     if n >= 1000000: return f"{round(n/1000000, 1)}M"
@@ -43,20 +42,34 @@ def get_video_type(duration_iso):
 
 # --- САЙТНИНГ ЧАП ТОМОНИ ---
 with st.sidebar:
-    st.title("🔍 Қидирув")
+    st.title("🔍 Тренд Фильтри")
     api_key = st.text_input("API Key", value="AIzaSyAE-vwmdFa4Royu56-GArSpm93fg-DOUtM", type="password")
-    topic = st.text_input("Мавзу:", "Historical Documentary")
-    min_views = st.number_input("Минимал кўрилиш:", value=500000)
+    topic = st.text_input("Мавзу:", "Mystery Documentary")
+    min_views = st.number_input("Минимал кўрилиш:", value=100000)
+    
+    # ВАҚТ ФИЛЬТРИ: 6 ОЙ (180 КУН)
+    st.write("📅 Қидирув даври: Охирги 6 ой")
+    published_after = (datetime.utcnow() - timedelta(days=180)).isoformat() + "Z"
+    
     max_results = st.slider("Натижалар сони", 10, 50, 30)
     search_btn = st.sidebar.button("🚀 ТАҲЛИЛНИ БОШЛАШ", use_container_width=True)
 
 # --- АСОСИЙ ОЙНА ---
-st.title("📊 YouTube Global Trends Dashboard")
+st.title("📊 YouTube Fresh Trends (Last 6 Months)")
 
 if search_btn:
     try:
         youtube = googleapiclient.discovery.build("youtube", "v3", developerKey=api_key)
-        search_res = youtube.search().list(q=topic, part="snippet", type="video", maxResults=max_results, order="viewCount").execute()
+        
+        # ҚИДИРУВГА publishedAfter ПАРАМЕТРИНИ ҚЎШДИК
+        search_res = youtube.search().list(
+            q=topic, 
+            part="snippet", 
+            type="video", 
+            maxResults=max_results, 
+            order="viewCount",
+            publishedAfter=published_after # МАНА ШУ ЕРДА 6 ОЙЛИК ЧЕКЛОВ
+        ).execute()
         
         final_data = []
         for item in search_res['items']:
@@ -87,7 +100,7 @@ if search_btn:
 
         if final_data:
             df = pd.DataFrame(final_data)
-            tab1, tab2 = st.tabs(["📋 Асосий Жадвал", "📊 Графиклар"])
+            tab1, tab2 = st.tabs(["📋 Янги Трендлар", "📊 Аналитика"])
             
             with tab1:
                 st.dataframe(
@@ -104,13 +117,14 @@ if search_btn:
                 output = BytesIO()
                 with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
                     df.to_excel(writer, index=False)
-                st.download_button("📥 Excel-га юклаш", output.getvalue(), "trends.xlsx", use_container_width=True)
+                st.download_button("📥 Excel-га сақлаш", output.getvalue(), "fresh_trends.xlsx", use_container_width=True)
 
             with tab2:
+                st.subheader("Вираллик бўйича энг яхши натижалар")
                 st.bar_chart(df.set_index('Канал номи')['Viral Score'])
 
         else:
-            st.warning("Натижа топилмади.")
+            st.warning("Охирги 6 ой ичида бундай кўрилишга эга видео топилмади.")
 
     except Exception as e:
         st.error(f"Хатолик: {str(e)}")
