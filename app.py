@@ -6,12 +6,11 @@ import re
 import collections
 import urllib.parse
 
-# 1. САЙТ ДИЗАЙНИ (777-ҚОИДА: MrBeast & ViewStat Style)
-st.set_page_config(page_title="ABS Viral 777 - Intelligence", page_icon="📈", layout="wide")
+# 1. САЙТ ДИЗАЙНИ (777-ҚОИДА)
+st.set_page_config(page_title="ABS Viral 777 PRO", page_icon="🚀", layout="wide")
 
 st.markdown("""
     <style>
-    .main { background-color: #0e1117; }
     .stButton>button {
         background-color: #FF0000 !important;
         color: white !important;
@@ -19,25 +18,26 @@ st.markdown("""
         font-weight: bold !important;
         width: 100% !important;
         border: none !important;
+        height: 3.5em !important;
     }
     .metric-card {
         background-color: #1E1E1E;
         border: 1px solid #333;
-        border-radius: 10px;
+        border-radius: 12px;
         padding: 15px;
         text-align: center;
         color: white;
-        margin-bottom: 10px;
     }
-    .metric-value { font-size: 22px; font-weight: bold; color: #FF0000; }
+    .metric-value { font-size: 24px; font-weight: bold; color: #FF0000; }
     .niche-score {
-        background: linear-gradient(90deg, #FF0000, #990000);
+        background: linear-gradient(90deg, #FF0000, #b30000);
         color: white; padding: 20px; border-radius: 15px;
-        text-align: center; margin-bottom: 25px; font-size: 20px;
+        text-align: center; margin-bottom: 20px; font-size: 22px;
+        font-weight: bold; border: 2px solid white;
     }
     .step-box {
         padding: 15px; background-color: #1E1E1E;
-        border-left: 5px solid #FF0000; border-radius: 5px;
+        border-left: 5px solid #FF0000; border-radius: 8px;
         margin-bottom: 10px; color: white;
     }
     </style>
@@ -50,7 +50,7 @@ if "saved_api_key" not in st.session_state: st.session_state.saved_api_key = ""
 if "last_results" not in st.session_state: st.session_state.last_results = None
 if "search_history" not in st.session_state: st.session_state.search_history = []
 
-USER_DB = {"baho123": {"pass": "qWe83664323546", "role": "superadmin"}}
+USER_DB = {"baho123": {"pass": "qWe83664323546"}}
 REGION_LANGS = {"US": "en", "GB": "en", "UZ": "uz", "RU": "ru", "TR": "tr", "DE": "de"}
 
 # --- ФУНКЦИЯЛАР (777-ҚОИДА) ---
@@ -66,12 +66,12 @@ def format_numbers(n):
     elif n >= 1000: return f"{round(n/1000, 1)}K"
     return str(n)
 
-# --- SIDEBAR (777-ҚОИДА) ---
+# --- SIDEBAR ---
 with st.sidebar:
     st.image("https://upload.wikimedia.org/wikipedia/en/d/db/MrBeast_logo.svg", width=80)
     st.title("VIRAL 777 PRO")
     if not st.session_state.authenticated:
-        with st.expander("🔑 Кириш"):
+        with st.expander("🔑 КИРИШ"):
             u, p = st.text_input("Логин:"), st.text_input("Пароль:", type="password")
             if st.button("КИРИШ"):
                 if u in USER_DB and USER_DB[u]["pass"] == p:
@@ -107,15 +107,14 @@ with t1:
             try:
                 youtube = googleapiclient.discovery.build("youtube", "v3", developerKey=api_key)
                 pub_after = (datetime.utcnow() - timedelta(days=days_back)).isoformat() + "Z"
-                res = youtube.search().list(q=topic, part="snippet", type="video", maxResults=25, order="viewCount", publishedAfter=pub_after, regionCode=region).execute()
+                res = youtube.search().list(q=topic, part="snippet", type="video", maxResults=30, order="viewCount", publishedAfter=pub_after, regionCode=region).execute()
                 
                 results = []
                 all_titles = ""
                 for item in res['items']:
                     v_id = item['id']['videoId']
                     v_inf = youtube.videos().list(part="statistics,snippet", id=v_id).execute()['items'][0]
-                    c_id = item['snippet']['channelId']
-                    c_inf = youtube.channels().list(part="statistics,snippet", id=c_id).execute()['items'][0]
+                    c_inf = youtube.channels().list(part="statistics,snippet", id=item['snippet']['channelId']).execute()['items'][0]
                     
                     views, subs = int(v_inf['statistics'].get('viewCount', 0)), int(c_inf['statistics'].get('subscriberCount', 1))
                     outlier = round(views / (subs if subs > 1000 else 1000), 1)
@@ -124,11 +123,14 @@ with t1:
                         all_titles += " " + v_inf['snippet']['title'].lower()
                         results.append({
                             "Расм": v_inf['snippet']['thumbnails']['high']['url'],
-                            "Вираллик": outlier, "Сарлавҳа": v_inf['snippet']['title'],
-                            "Просмотр": views, "Обуначи": subs,
+                            "Вираллик": outlier, 
+                            "Видео_Номи": v_inf['snippet']['title'], # Видео номи шу ерда
+                            "Просмотр": views, 
+                            "Обуначи": subs,
                             "Юкланган": get_full_uzb_date(v_inf['snippet']['publishedAt']),
                             "Канал_Очилган": get_full_uzb_date(c_inf['snippet']['publishedAt']),
-                            "Канал": item['snippet']['channelTitle'], "Ҳавола": f"https://www.youtube.com/watch?v={v_id}"
+                            "Канал": item['snippet']['channelTitle'], 
+                            "Ҳавола": f"https://www.youtube.com/watch?v={v_id}"
                         })
                 st.session_state.last_results = {"data": results, "titles": all_titles}
             except Exception as e: st.error(f"Хато: {e}")
@@ -137,51 +139,53 @@ with t1:
         res_data = st.session_state.last_results["data"]
         df = pd.DataFrame(res_data).sort_values(by="Вираллик", ascending=False)
         
-        # 3. НИША ТАҲЛИЛИ (Янги фишкалар)
-        avg_outlier = round(df["Вираллик"].mean(), 1)
-        st.markdown(f"<div class='niche-score'>📊 Ниша Баҳоси: {avg_outlier}x Viral Potential<br><small>Бу мавзу одатдагидан {avg_outlier} марта кўп кўрилиш бермоқда!</small></div>", unsafe_allow_html=True)
+        # НИША ТАҲЛИЛИ БЛОКИ
+        avg_v = round(df["Вираллик"].mean(), 1)
+        st.markdown(f"<div class='niche-score'>📊 Ниша Баҳоси: {avg_v}x Viral Potential</div>", unsafe_allow_html=True)
         
-        col_t1, col_t2 = st.columns(2)
-        with col_t1:
+        c1_info, c2_info = st.columns(2)
+        with c1_info:
             words = re.findall(r'\w+', st.session_state.last_results["titles"])
-            common = [word for word, count in collections.Counter(words).most_common(10) if len(word) > 3]
+            common = [w for w, c in collections.Counter(words).most_common(12) if len(w) > 4]
             st.info(f"🔑 **Вирал калит сўзлар:** {', '.join(common)}")
-        with col_t2:
-            st.info(f"⏰ **Энг зур вақт:** Топ видеолар асосан соат 18:00 - 21:00 оралиғида юкланган.")
+        with c2_info:
+            st.info(f"⏰ **Энг зур вақт:** Видеолар асосан 18:00 - 21:00 оралиғида энг кўп юкланган.")
 
-        view_mode = st.radio("Кўриниш:", ["Карточка", "Жадвал"], horizontal=True)
+        view_mode = st.radio("👀 Кўриниш:", ["Карточка", "Жадвал"], horizontal=True)
         
         if view_mode == "Карточка":
             for _, row in df.iterrows():
-                c1, c2 = st.columns([1.5, 2.5])
-                with c1: st.image(row['Расм'], use_container_width=True)
-                with c2:
-                    st.subheader(row['Сарлавҳа'])
-                    st.write(f"📺 **Канал:** {row['Канал']} | 📅 **Юкланган:** {row['Юкланган']}")
+                col1, col2 = st.columns([1.5, 2.5])
+                with col1: st.image(row['Расм'], use_container_width=True)
+                with col2:
+                    st.markdown(f"### [{row['Видео_Номи']}]({row['Ҳавола']})") # Сарлавҳа босиладиган бўлди
+                    st.write(f"👤 **Канал:** {row['Канал']} | 📅 **Юкланган:** {row['Юкланган']}")
                     st.write(f"🏗️ **Канал очилган:** {row['Канал_Очилган']}")
                     m1, m2, m3 = st.columns(3)
                     m1.markdown(f"<div class='metric-card'>🔥 Вираллик<br><span class='metric-value'>{row['Вираллик']}x</span></div>", unsafe_allow_html=True)
                     m2.markdown(f"<div class='metric-card'>👁️ Просмотр<br><span class='metric-value'>{format_numbers(row['Просмотр'])}</span></div>", unsafe_allow_html=True)
                     m3.markdown(f"<div class='metric-card'>👥 Обуначи<br><span class='metric-value'>{format_numbers(row['Обуначи'])}</span></div>", unsafe_allow_html=True)
-                    b1, b2 = st.columns(2)
-                    with b1: st.link_button("📺 КЎРИШ", row['Ҳавола'], use_container_width=True)
-                    with b2:
-                        msg = urllib.parse.quote(f"Зўр видео! {row['Вираллик']}x: {row['Ҳавола']}")
-                        st.link_button("✈️ SHARE", f"https://t.me/share/url?url={row['Ҳавола']}&text={msg}", use_container_width=True)
                 st.divider()
         else:
-            # Жадвалда ID йўқ, Расм биринчи!
-            st.dataframe(df[["Расм", "Сарлавҳа", "Вираллик", "Просмотр", "Обуначи", "Юкланган", "Канал"]], 
-                         column_config={"Расм": st.column_config.ImageColumn(), "Ҳавола": st.column_config.LinkColumn()}, use_container_width=True, hide_index=True)
+            # ЖАДВАЛДА ВИДЕО НОМИНИ ҲАҚИҚИЙ НОМИ ҚИЛИБ, УНИ БОСИЛАДИГАН ҚИЛДИМ
+            list_df = df.copy()
+            list_df['Просмотр'] = list_df['Просмотр'].apply(format_numbers)
+            list_df['Обуначи'] = list_df['Обуначи'].apply(format_numbers)
+            
+            st.dataframe(list_df[["Расм", "Видео_Номи", "Вираллик", "Просмотр", "Обуначи", "Юкланган", "Канал", "Ҳавола"]], 
+                         column_config={
+                             "Расм": st.column_config.ImageColumn("Превью"),
+                             "Видео_Номи": st.column_config.LinkColumn("Видео Номи (Босинг)", display_text=None),
+                             "Ҳавола": st.column_config.LinkColumn("🔗 YouTube", display_text="Очиш")
+                         }, use_container_width=True, hide_index=True)
 
 with t2:
     st.header("📜 Қидирув тарихи")
-    st.table(pd.DataFrame(st.session_state.search_history).iloc[::-1])
+    if st.session_state.search_history:
+        st.table(pd.DataFrame(st.session_state.search_history).iloc[::-1])
 
 with t3:
-    st.header("📖 Қўлланма (777 Guide)")
-    st.markdown("<div class='step-box'>1. <b>Google Cloud</b>-га киринг ва лойиҳа очинг.</div>", unsafe_allow_html=True)
-    
-    st.markdown("<div class='step-box'>2. <b>YouTube Data API v3</b>-ни қидириб ёқинг (Enable).</div>", unsafe_allow_html=True)
-    
-    st.markdown("<div class='step-box'>3. <b>Credentials</b> бўлимидан API Key яратинг ва нусхаланг.</div>", unsafe_allow_html=True)
+    st.header("📖 YouTube API Қўлланма")
+    st.markdown("<div class='step-box'>1. Google Cloud-да лойиҳа очинг.</div>", unsafe_allow_html=True)
+    st.markdown("<div class='step-box'>2. YouTube Data API v3-ни 'Enable' қилинг.</div>", unsafe_allow_html=True)
+    st.markdown("<div class='step-box'>3. API Key яратиб, сайтга қўйинг.</div>", unsafe_allow_html=True)
