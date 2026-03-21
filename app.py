@@ -6,33 +6,42 @@ import isodate
 from datetime import datetime, timedelta
 import re
 
-# 1. САЙТНИ ТЎЛИҚ КЕНГ ЭКРАН ҚИЛИШ ВА ЎЗБЕКЧА НОМ
+# 1. ПРОФЕССИОНАЛ КЕНГ ЭКРАН ВА ДИЗАЙН
 st.set_page_config(
-    page_title="YouTube Про-Аналитика",
+    page_title="YouTube Viral Intelligence Dashboard",
+    page_icon="🚀",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Экранни кенгайтириш учун CSS
+# ViewStats услубидаги Dark-Modern CSS
 st.markdown("""
     <style>
-    .block-container { padding-top: 1.5rem; padding-bottom: 0rem; padding-left: 2rem; padding-right: 2rem; }
-    .stMetric { background-color: #f0f2f6; padding: 15px; border-radius: 10px; border: 1px solid #d1d5db; }
+    .main { background-color: #f8f9fa; }
+    .stMetric { 
+        background-color: #ffffff; 
+        padding: 20px; 
+        border-radius: 12px; 
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        border-left: 5px solid #FF0000;
+    }
+    .stButton>button {
+        width: 100%;
+        border-radius: 8px;
+        height: 3em;
+        background-color: #FF0000;
+        color: white;
+        font-weight: bold;
+    }
+    .sidebar .sidebar-content { background-color: #1e1e1e; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- ЁРДАМЧИ ФУНКЦИЯЛАР (ЎЗБЕКЧА ФОРМАТ) ---
+# --- ЁРДАМЧИ ФУНКЦИЯЛАР ---
 def format_numbers(n):
     if n >= 1000000: return f"{round(n/1000000, 1)}M"
     elif n >= 1000: return f"{round(n/1000, 1)}K"
     return str(n)
-
-def format_date_str(iso_date):
-    try:
-        clean_date = re.sub(r'\.\d+Z', 'Z', iso_date)
-        dt = datetime.strptime(clean_date, '%Y-%m-%dT%H:%M:%SZ')
-        return dt.strftime('%Y-%m-%d | %H:%M')
-    except: return iso_date[:10]
 
 def get_video_type(duration_iso):
     try:
@@ -40,115 +49,115 @@ def get_video_type(duration_iso):
         return "📱 Shorts" if duration <= 60 else "🎥 Узун"
     except: return "🎥 Узун"
 
-# --- САЙТНИНГ ЧАП ТОМОНИ (SIDEBAR) ---
+# --- SIDEBAR: СТРАТЕГИК БОШҚАРУВ ---
 with st.sidebar:
-    st.title("🔍 Қидирув Созламалари")
-    api_key = st.text_input("API калит (Key)", value="AIzaSyAE-vwmdFa4Royu56-GArSpm93fg-DOUtM", type="password")
-    topic = st.text_input("Мавзуни ёзинг:", "Mystery Documentary")
-    min_views = st.number_input("Минимал кўрилиш:", value=100000)
+    st.image("https://www.gstatic.com/youtube/img/branding/youtubelogo/svg/youtubelogo.svg", width=150)
+    st.title("🎯 Аналитика Маркази")
+    st.markdown("---")
     
-    st.divider()
-    st.write("📅 **Давр:** Охирги 6 ой")
-    published_after = (datetime.utcnow() - timedelta(days=180)).isoformat() + "Z"
+    # 1. Асосий қидирув
+    api_key = st.text_input("🔑 API Key", value="AIzaSyAE-vwmdFa4Royu56-GArSpm93fg-DOUtM", type="password")
+    topic = st.text_input("🔍 Мавзу ёки Калит сўз:", "MrBeast Style Challenges")
     
-    max_results = st.slider("Натижалар сони", 10, 50, 30)
-    search_btn = st.button("🚀 ТАҲЛИЛНИ БОШЛАШ", use_container_width=True)
+    # 2. Регион ва Тил (ViewStats функцияси)
+    region = st.selectbox("🌍 Регион (Давлат):", ["US (АҚШ)", "GB (Англия)", "DE (Германия)", "RU (Россия)", "BR (Бразилия)"])
+    region_code = region[:2]
+    
+    # 3. Вақт ва Саралаш
+    days_back = st.select_slider("📅 Қанча вақт ичида?", options=[7, 30, 90, 180, 365], value=180)
+    st.caption(f"Охирги {days_back} кунлик видеолар")
+    
+    # 4. Профессионал Фильтрлар
+    st.markdown("#### 🛠 Фильтрлар")
+    min_outlier = st.slider("Min Outlier (Вираллик):", 1, 50, 3)
+    content_filter = st.radio("Видео тури:", ["Ҳаммаси", "Фақат Узун", "Фақат Shorts"])
+    
+    published_after = (datetime.utcnow() - timedelta(days=days_back)).isoformat() + "Z"
+    search_btn = st.button("🚀 ТРЕНДЛАРНИ ТОПИШ")
 
-# --- АСОСИЙ ОЙНА ---
-st.title("📊 YouTube Вирал Аналитика (ViewStats Dashboard)")
-
+# --- АСОСИЙ ИШЧИ МАЙДОН ---
 if search_btn:
     try:
         youtube = googleapiclient.discovery.build("youtube", "v3", developerKey=api_key)
         
-        # Видео қидириш (6 ойлик чегара билан)
+        # Қидирув
         search_res = youtube.search().list(
             q=topic, part="snippet", type="video", 
-            maxResults=max_results, order="viewCount",
-            publishedAfter=published_after
+            maxResults=50, order="viewCount",
+            publishedAfter=published_after,
+            regionCode=region_code
         ).execute()
         
         final_data = []
         for item in search_res['items']:
             v_id = item['id']['videoId']
-            c_id = item['snippet']['channelId']
-            
-            # Видео ва Канал маълумотлари
             v_info = youtube.videos().list(part="statistics,contentDetails,snippet", id=v_id).execute()['items'][0]
-            c_info = youtube.channels().list(part="statistics,snippet", id=c_id).execute()['items'][0]
+            c_info = youtube.channels().list(part="statistics", id=item['snippet']['channelId']).execute()['items'][0]
             
             views = int(v_info['statistics'].get('viewCount', 0))
             subs = int(c_info['statistics'].get('subscriberCount', 1))
-            pub_date_raw = v_info['snippet']['publishedAt']
+            v_type = get_video_type(v_info['contentDetails']['duration'])
             
-            # 1. Velocity (Соатбай кўрилиш)
-            clean_date = re.sub(r'\.\d+Z', 'Z', pub_date_raw)
-            dt_pub = datetime.strptime(clean_date, '%Y-%m-%dT%H:%M:%SZ')
-            hours_age = (datetime.utcnow() - dt_pub).total_seconds() / 3600
-            velocity = round(views / hours_age, 1) if hours_age > 0 else 0
+            # Outlier ҳисоблаш
+            effective_subs = subs if subs > 1000 else 1000
+            outlier_score = round(views / effective_subs, 1)
             
-            # 2. Outlier Score (Вираллик коэффициенти)
-            # Агар канал жуда кичик бўлса, ҳисобни тўғрилаш учун минимум 500 та обуначи деб оламиз
-            effective_subs = subs if subs > 500 else 500
-            outlier_score = round(views / effective_subs, 2)
-            
-            if views >= min_views:
+            # VPH ҳисоблаш
+            dt_pub = datetime.strptime(re.sub(r'\.\d+Z', 'Z', v_info['snippet']['publishedAt']), '%Y-%m-%dT%H:%M:%SZ')
+            hours_age = max((datetime.utcnow() - dt_pub).total_seconds() / 3600, 1)
+            vph = round(views / hours_age, 1)
+
+            # ФИЛЬТРЛАШ
+            if outlier_score >= min_outlier:
+                if content_filter == "Фақат Узун" and v_type == "📱 Shorts": continue
+                if content_filter == "Фақат Shorts" and v_type == "🎥 Узун": continue
+                
                 final_data.append({
                     "Превью": v_info['snippet']['thumbnails']['default']['url'],
-                    "Ҳолати": "⭐ OUTLIER" if outlier_score > 10 else ("🔥 Вирал" if outlier_score > 5 else "✅ Одатий"),
-                    "Типи": get_video_type(v_info['contentDetails']['duration']),
-                    "Видео номи": item['snippet']['title'],
-                    "Кўрилишлар (Сон)": views, # Саралаш учун асл сон керак
-                    "Кўрилишлар": format_numbers(views),
-                    "Соатбай (VPH)": f"{format_numbers(velocity)}/с",
                     "Outlier Score": outlier_score,
-                    "Обуначилар": format_numbers(subs),
-                    "Канал очилган": c_info['snippet']['publishedAt'][:10],
-                    "Жойланган вақти": format_date_str(pub_date_raw),
-                    "Канал номи": item['snippet']['channelTitle'],
+                    "Видео номи": item['snippet']['title'],
+                    "Типи": v_type,
+                    "Кўрилишлар": format_numbers(views),
+                    "VPH (Соатбай)": f"{format_numbers(vph)}/с",
+                    "Обуначи": format_numbers(subs),
+                    "Канал": item['snippet']['channelTitle'],
+                    "Сана": dt_pub.strftime('%Y-%m-%d'),
                     "Ҳавола": f"https://www.youtube.com/watch?v={v_id}"
                 })
 
         if final_data:
-            df = pd.DataFrame(final_data)
-            # Энг виралларини тепага чиқариш
-            df = df.sort_values(by="Outlier Score", ascending=False)
+            df = pd.DataFrame(final_data).sort_values(by="Outlier Score", ascending=False)
             
-            # ТЕПА ПАНЕЛ (Метрикалар)
-            m1, m2, m3 = st.columns(3)
-            m1.metric("Энг юқори вираллик", f"{df['Outlier Score'].max()}x")
-            m2.metric("Топ Соатбай кўрилиш", df['Соатбай (VPH)'].iloc[0])
-            m3.metric("Жами топилди", len(df))
+            # Метрикалар
+            m1, m2, m3, m4 = st.columns(4)
+            m1.metric("Топ Outlier", f"{df['Outlier Score'].max()}x")
+            m2.metric("Макс VPH", df['VPH (Соатбай)'].iloc[0])
+            m3.metric("Сараланди", f"{len(df)} та")
+            m4.metric("Давлат", region_code)
 
-            tab1, tab2 = st.tabs(["📋 Асосий Жадвал", "📊 Аналитика ва Графиклар"])
+            # Жадвал
+            st.dataframe(
+                df,
+                column_config={
+                    "Превью": st.column_config.ImageColumn(),
+                    "Ҳавола": st.column_config.LinkColumn("Кўриш", display_text="📺"),
+                    "Outlier Score": st.column_config.ProgressColumn("Вираллик (Outlier)", min_value=0, max_value=30),
+                },
+                use_container_width=True, hide_index=True
+            )
             
-            with tab1:
-                st.dataframe(
-                    df.drop(columns=["Кўрилишлар (Сон)"]), # Асл сонни жадвалда яширамиз
-                    column_config={
-                        "Превью": st.column_config.ImageColumn("Расм"),
-                        "Ҳавола": st.column_config.LinkColumn("YouTube", display_text="Кўриш 📺"),
-                        "Outlier Score": st.column_config.ProgressColumn("Вираллик даражаси", min_value=0, max_value=20, format="%.2f x"),
-                        "Канал очилган": st.column_config.DateColumn("Канал очилган")
-                    },
-                    use_container_width=True,
-                    hide_index=True
-                )
-                
-                # Excel сақлаш
-                output = BytesIO()
-                with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-                    df.to_excel(writer, index=False)
-                st.download_button("📥 Натижаларни Excel-га юклаш", output.getvalue(), "youtube_pro_report.xlsx", use_container_width=True)
-
-            with tab2:
-                st.subheader("Каналлар бўйича Вираллик (Outlier) тақсимоти")
-                st.bar_chart(df.set_index('Канал номи')['Outlier Score'])
-                
+            # Excel
+            st.download_button("📥 Маълумотларни Excel-га юклаш", BytesIO().getvalue(), "report.xlsx", use_container_width=True)
+            
         else:
-            st.warning("Охирги 6 ойда бундай кўрилишга эга янги видеолар топилмади.")
+            st.warning("Бундай қаттиқ фильтр остида видео топилмади. Саралашни бироз юмшатиб кўринг.")
 
     except Exception as e:
-        st.error(f"Хатолик юз берди: {str(e)}")
+        st.error(f"Алоқада хатолик: {e}")
 else:
-    st.info("Қидирувни бошлаш учун тугмани босинг.")
+    # Илк бор кирганда кўринадиган чиройли дизайн
+    col_a, col_b = st.columns(2)
+    with col_a:
+        st.info("👈 Чап томондаги панел орқали ниша ва давлатни танланг.")
+    with col_b:
+        st.success("🎯 Outlier Score 5х дан юқори видеолар - бу сиз учун тайёр ғоя!")
