@@ -5,42 +5,83 @@ from io import BytesIO
 import isodate
 from datetime import datetime, timedelta
 import re
+import plotly.express as px
 
 # 1. САЙТ СОЗЛАМАЛАРИ
-st.set_page_config(page_title="ABS - Automation Business System", page_icon="🛡️", layout="wide")
+st.set_page_config(page_title="ABS - Business Intelligence", page_icon="🛡️", layout="wide")
 
-# ДИЗАЙН УЧУН CSS
-st.markdown("""
-    <style>
-    .main { background-color: #f8f9fa; }
-    .stButton>button { width: 100%; border-radius: 8px; height: 3em; background-color: #FF0000; color: white; font-weight: bold; }
-    .login-box { padding: 2rem; border-radius: 10px; background-color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid #eee; }
-    .guide-box { background-color: #f0f2f6; padding: 15px; border-radius: 10px; border-left: 5px solid #007bff; margin-bottom: 20px; }
-    </style>
-    """, unsafe_allow_html=True)
+# СЕССИЯ ХОТИРАСИ (БАЗА)
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+if "user_db" not in st.session_state:
+    # СИЗНИНГ ЯНГИ МАЪЛУМОТЛАРИНГИЗ ВА ФОЙДАЛАНУВЧИЛАР
+    st.session_state.user_db = {
+        "baho123": {"pass": "qWe83664323546", "role": "superadmin"},
+        "user_pro": {"pass": "abs_user_2026", "role": "user"},
+        "guest": {"pass": "guest123", "role": "user"}
+    }
+if "search_history" not in st.session_state:
+    st.session_state.search_history = []
 
 # --- КИРИШ ТИЗИМИ ---
-def check_password():
-    if "authenticated" not in st.session_state:
-        st.session_state.authenticated = False
+def login_page():
+    st.title("🚀 ABS - Тизимга кириш")
+    col1, col2, col3 = st.columns([1,1.5,1])
+    with col2:
+        st.markdown('<div style="padding: 2rem; border-radius: 15px; background-color: white; border: 1px solid #ddd; box-shadow: 0 10px 20px rgba(0,0,0,0.1);">', unsafe_allow_html=True)
+        u = st.text_input("Логин:")
+        p = st.text_input("Пароль:", type="password")
+        if st.button("ТИЗИМГА КИРИШ"):
+            if u in st.session_state.user_db and st.session_state.user_db[u]["pass"] == p:
+                st.session_state.authenticated = True
+                st.session_state.current_user = u
+                st.session_state.user_role = st.session_state.user_db[u]["role"]
+                st.rerun()
+            else:
+                st.error("Логин ёки пароль хато!")
+        st.markdown('</div>', unsafe_allow_html=True)
 
-    if not st.session_state.authenticated:
-        st.title("🚀 ABS - Тизимга кириш")
-        col1, col2, col3 = st.columns([1,1.5,1])
-        with col2:
-            st.markdown('<div class="login-box">', unsafe_allow_html=True)
-            user = st.text_input("Логин:")
-            password = st.text_input("Пароль:", type="password")
-            if st.button("КИРИШ"):
-                if user == "admin" and password == "abs2026":
-                    st.session_state.authenticated = True
-                    st.rerun()
-                else:
-                    st.error("Логин ёки пароль хато!")
-            st.markdown('</div>', unsafe_allow_html=True)
-            st.info("Бу тизим YouTube трендларини автоматик таҳлил қилиш учун яратилган.")
-        return False
-    return True
+# --- АДМИН ПАНЕЛ ВА ГРАФИКЛАР ---
+def admin_panel_ui():
+    st.header("👨‍✈️ Админ Стратегик Бошқаруви")
+    
+    t1, t2, t3 = st.tabs(["📊 Мавзулар Аналитикаси", "👥 Фойдаланувчилар", "📜 Тўлиқ Тарих"])
+    
+    with t1:
+        st.subheader("📈 Энг кўп қидирилган мавзулар (Trend Analysis)")
+        if st.session_state.search_history:
+            df_hist = pd.DataFrame(st.session_state.search_history)
+            # Мавзулар бўйича график чизиш
+            topic_counts = df_hist['Мавзу'].value_counts().reset_index()
+            topic_counts.columns = ['Мавзу', 'Қидирув сони']
+            
+            fig = px.bar(topic_counts, x='Мавзу', y='Қидирув сони', 
+                         color='Қидирув сони', title="Қайси мавзуларга талаб катта?",
+                         color_continuous_scale='Reds')
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info("График чизиш учун ҳали маълумот етарли эмас.")
+
+    with t2:
+        col_l, col_r = st.columns(2)
+        with col_l:
+            st.subheader("Фойдаланувчилар Базаси")
+            u_list = [{"Логин": k, "Пароли": v["pass"], "Роли": v["role"]} for k, v in st.session_state.user_db.items()]
+            st.dataframe(pd.DataFrame(u_list), use_container_width=True)
+        with col_r:
+            st.subheader("Янги фойдаланувчи қўшиш")
+            new_u = st.text_input("Янги Логин:")
+            new_p = st.text_input("Янги Пароль:")
+            if st.button("ҚЎШИШ"):
+                st.session_state.user_db[new_u] = {"pass": new_p, "role": "user"}
+                st.success("Фойдаланувчи қўшилди!")
+                st.rerun()
+
+    with t3:
+        if st.session_state.search_history:
+            st.dataframe(pd.DataFrame(st.session_state.search_history), use_container_width=True)
+        else:
+            st.write("Тарих бўш.")
 
 # --- ЁРДАМЧИ ФУНКЦИЯЛАР ---
 def format_numbers(n):
@@ -48,109 +89,74 @@ def format_numbers(n):
     elif n >= 1000: return f"{round(n/1000, 1)}K"
     return str(n)
 
-def get_uzb_month(iso_date):
-    months = {1: "Январь", 2: "Февраль", 3: "Март", 4: "Апрель", 5: "Май", 6: "Июнь", 7: "Июль", 8: "Август", 9: "Сентябрь", 10: "Октябрь", 11: "Ноябрь", 12: "Декабрь"}
-    try:
-        clean_date = re.sub(r'\.\d+Z', 'Z', iso_date)
-        dt = datetime.strptime(clean_date, '%Y-%m-%dT%H:%M:%SZ')
-        return f"{dt.year}-{months[dt.month]}"
-    except: return iso_date[:7]
+# --- АСОСИЙ ЛОГИКА ---
+if not st.session_state.authenticated:
+    login_page()
+else:
+    t_list = ["🚀 Вирал Таҳлил", "📜 Менинг тарихим", "⚙️ Созламалар"]
+    if st.session_state.user_role == "superadmin":
+        t_list.append("👨‍✈️ АДМИН ПАНЕЛ")
+    
+    tabs = st.tabs(t_list)
 
-# --- АСОСИЙ ИНТЕРФЕЙС ---
-if check_password():
-    # Таблар (Варақлар) яратамиз: Асосий таҳлил ва Қўлланма
-    tab_main, tab_guide = st.tabs(["🚀 Вирал Таҳлил", "📖 Қўлланма ва API олиш"])
+    if st.session_state.user_role == "superadmin":
+        with tabs[3]:
+            admin_panel_ui()
 
-    # --- ҚЎЛЛАНМА ВАРАҒИ ---
-    with tab_guide:
-        st.header("📚 ABS Тизимидан фойдаланиш қўлланмаси")
-        
-        col_g1, col_g2 = st.columns(2)
-        
-        with col_g1:
-            st.subheader("1. YouTube API Key олиш (Текин)")
-            st.markdown("""
-            Тизим ишлаши учун сизга шахсий API калит керак. Уни олиш мутлақо бепул:
-            1. **[Google Cloud Console](https://console.cloud.google.com/)** сайтига киринг.
-            2. Янги лойиҳа очинг (Create Project).
-            3. **'Enabled APIs & Services'** бўлимига кириб, **'YouTube Data API v3'** ни қидириб топинг ва **Enable** тугмасини босинг.
-            4. **'Credentials'** бўлимига ўтинг ва **'+ Create Credentials'** -> **'API Key'** ни танланг.
-            5. Тайёр бўлган кодни нусхалаб олинг ва ABS тизимига қўйинг.
-            """)
-            
-        with col_g2:
-            st.subheader("2. Телефонга илова қилиб ўрнатиш")
-            st.markdown("""
-            ABS-ни Play Market-сиз телефонга ўрнатиш учун:
-            1. Сайтни телефонингиз браузерида (Chrome ёки Safari) очинг.
-            2. Браузер менюсини (3 нуқта ёки улашиш тугмаси) босинг.
-            3. **'Экранга қўшиш' (Добавить на гл. экран / Add to Home Screen)** ни танланг.
-            4. Энди сайт телефонингизда алоҳида илова бўлиб кўринади!
-            """)
-        
-        st.divider()
-        st.warning("⚠️ Эслатма: Битта бепул API калит кунига 10,000 бирлик (тахминан 100-200 қидирув) учун етади.")
+    with tabs[2]:
+        st.subheader(f"Профиль: {st.session_state.current_user}")
+        if st.button("🚪 Чиқиш"):
+            st.session_state.authenticated = False
+            st.rerun()
 
-    # --- АСОСИЙ ТАҲЛИЛ ВАРАҒИ ---
-    with tab_main:
+    with tabs[1]:
+        st.header("📜 Сизнинг тарихингиз")
+        my_h = [x for x in st.session_state.search_history if x["Ким"] == st.session_state.current_user]
+        if my_h: st.table(pd.DataFrame(my_h))
+        else: st.info("Тарих бўш.")
+
+    with tabs[0]:
         with st.sidebar:
             st.title("🛡️ ABS Панел")
-            st.write("Фойдаланувчи: **Admin**")
-            st.markdown("---")
-            api_key = st.text_input("🔑 API Key:", value="AIzaSyAE-vwmdFa4Royu56-GArSpm93fg-DOUtM", type="password", help="API калитни 'Қўлланма' бўлимидан олишингиз мумкин.")
-            topic = st.text_input("🔍 Мавзу:", "Survival Challenge")
-            region = st.selectbox("🌍 Давлат:", ["US", "GB", "DE", "RU", "UZ", "TR", "KZ"])
-            days_back = st.select_slider("📅 Давр (кун):", options=[7, 30, 90, 180, 365], value=180)
-            st.markdown("#### ⚙️ Фильтрлар")
-            min_outlier = st.slider("Минимал Вираллик (Outlier):", 1, 50, 5)
-            content_filter = st.radio("Формат:", ["Ҳаммаси", "Фақат Узун", "Фақат Shorts"])
-            
-            if st.button("🚪 Тизимдан чиқиш"):
-                st.session_state.authenticated = False
-                st.rerun()
-
-        st.title("📊 ABS: YouTube Вирал Интеллект")
-        search_btn = st.sidebar.button("🚀 ТАҲЛИЛНИ БОШЛАШ")
+            api_key = st.text_input("🔑 API Key:", type="password")
+            topic = st.text_input("🔍 Мавзу:", "Space Secrets")
+            region = st.selectbox("🌍 Давлат:", ["US", "GB", "DE", "UZ", "RU"])
+            min_outl = st.slider("Min Outlier:", 1, 50, 5)
+            search_btn = st.button("🚀 ТАҲЛИЛНИ БОШЛАШ")
 
         if search_btn:
+            # Тарихга ёзиш
+            st.session_state.search_history.append({
+                "Вақт": datetime.now().strftime("%Y-%m-%d %H:%M"),
+                "Ким": st.session_state.current_user,
+                "Мавзу": topic,
+                "Давлат": region
+            })
+            
             try:
                 youtube = googleapiclient.discovery.build("youtube", "v3", developerKey=api_key)
-                pub_after = (datetime.utcnow() - timedelta(days=days_back)).isoformat() + "Z"
-                
-                res = youtube.search().list(q=topic, part="snippet", type="video", maxResults=50, order="viewCount", publishedAfter=pub_after, regionCode=region).execute()
+                res = youtube.search().list(q=topic, part="snippet", type="video", maxResults=30, order="viewCount", regionCode=region).execute()
                 
                 data = []
                 for item in res['items']:
                     v_id = item['id']['videoId']
-                    v_inf = youtube.videos().list(part="statistics,contentDetails,snippet", id=v_id).execute()['items'][0]
-                    c_inf = youtube.channels().list(part="statistics,snippet", id=item['snippet']['channelId']).execute()['items'][0]
+                    v_inf = youtube.videos().list(part="statistics,snippet", id=v_id).execute()['items'][0]
+                    c_inf = youtube.channels().list(part="statistics", id=item['snippet']['channelId']).execute()['items'][0]
+                    v_count = int(v_inf['statistics'].get('viewCount', 0))
+                    s_count = int(c_inf['statistics'].get('subscriberCount', 1))
+                    outlier = round(v_count / (s_count if s_count > 1000 else 1000), 1)
                     
-                    views = int(v_inf['statistics'].get('viewCount', 0))
-                    subs = int(c_inf['statistics'].get('subscriberCount', 1))
-                    outlier = round(views / (subs if subs > 1000 else 1000), 1)
-                    
-                    if outlier >= min_outlier:
+                    if outlier >= min_outl:
                         data.append({
                             "Расм": v_inf['snippet']['thumbnails']['default']['url'],
                             "Вираллик": outlier,
                             "Сарлавҳа": item['snippet']['title'],
-                            "Кўрилишлар": format_numbers(views),
-                            "Обуначилар": format_numbers(subs),
-                            "Канал ёши": get_uzb_month(c_inf['snippet']['publishedAt']),
-                            "Юкланган": get_uzb_month(v_inf['snippet']['publishedAt']),
+                            "Кўрилишлар": format_numbers(v_count),
                             "Канал": item['snippet']['channelTitle'],
                             "Ҳавола": f"https://www.youtube.com/watch?v={v_id}"
                         })
 
                 if data:
-                    df = pd.DataFrame(data).sort_values(by="Вираллик", ascending=False)
-                    st.dataframe(df, column_config={"Расм": st.column_config.ImageColumn(), "Ҳавола": st.column_config.LinkColumn("📺"), "Вираллик": st.column_config.ProgressColumn(min_value=0, max_value=30, format="%.1f x")}, use_container_width=True, hide_index=True)
-                    
-                    output = BytesIO()
-                    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-                        df.to_excel(writer, index=False)
-                    st.download_button("📥 Натижаларни Excel юклаш", output.getvalue(), "abs_report.xlsx", use_container_width=True)
-                else:
-                    st.warning("Бу фильтрлар бўйича ҳеч нима топилмади.")
-            except Exception as e:
-                st.error(f"Хато: {e}. API калитни текшириб кўринг.")
+                    st.dataframe(pd.DataFrame(data), column_config={"Расм": st.column_config.ImageColumn(), "Ҳавола": st.column_config.LinkColumn("📺")}, use_container_width=True, hide_index=True)
+                else: st.warning("Натижа йўқ.")
+            except: st.error("Хато: API калитни текширинг.")
