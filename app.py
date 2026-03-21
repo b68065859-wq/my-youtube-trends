@@ -35,15 +35,10 @@ st.markdown("""
         text-align: center; margin-bottom: 20px; font-size: 22px;
         font-weight: bold; border: 2px solid white;
     }
-    .step-box {
-        padding: 15px; background-color: #1E1E1E;
-        border-left: 5px solid #FF0000; border-radius: 8px;
-        margin-bottom: 10px; color: white;
-    }
     </style>
     """, unsafe_allow_html=True)
 
-# 2. СЕССИЯ ХОТИРАСИ (777-ҚОИДА)
+# 2. СЕССИЯ ХОТИРАСИ (777-ҚОИДА: API ВА LOGIN)
 if "authenticated" not in st.session_state: st.session_state.authenticated = False
 if "search_count" not in st.session_state: st.session_state.search_count = 0 
 if "saved_api_key" not in st.session_state: st.session_state.saved_api_key = ""
@@ -66,31 +61,37 @@ def format_numbers(n):
     elif n >= 1000: return f"{round(n/1000, 1)}K"
     return str(n)
 
-# --- SIDEBAR (Янги Филтр қўшилди) ---
+# --- SIDEBAR (API ЭСЛАБ ҚОЛИШ ҚИСМИ) ---
 with st.sidebar:
     st.image("https://upload.wikimedia.org/wikipedia/en/d/db/MrBeast_logo.svg", width=80)
     st.title("VIRAL 777 PRO")
+    
     if not st.session_state.authenticated:
         with st.expander("🔑 КИРИШ"):
-            u, p = st.text_input("Логин:"), st.text_input("Пароль:", type="password")
+            u = st.text_input("Логин:")
+            p = st.text_input("Пароль:", type="password")
             if st.button("КИРИШ"):
                 if u in USER_DB and USER_DB[u]["pass"] == p:
-                    st.session_state.authenticated = True; st.rerun()
+                    st.session_state.authenticated = True
+                    st.rerun()
     else:
-        st.success(f"👤 {st.session_state.current_user}")
-        if st.button("🚪 ЧИҚИШ"): st.session_state.authenticated = False; st.rerun()
+        st.success("👤 Тизимга кирилди")
+        if st.button("🚪 ЧИҚИШ"):
+            st.session_state.authenticated = False
+            st.rerun()
     
     st.divider()
-    api_key = st.text_input("🔑 API Key:", value=st.session_state.saved_api_key, type="password")
-    st.session_state.saved_api_key = api_key
+    
+    # API KEY ЭСЛАБ ҚОЛИШ УЧУН ТЎҒРИДАН-ТЎҒРИ SESSION_STATE'ГА БОҒЛАНДИ
+    api_key = st.text_input("🔑 API Key:", value=st.session_state.saved_api_key, type="password", key="api_input")
+    if api_key != st.session_state.saved_api_key:
+        st.session_state.saved_api_key = api_key # Калит ўзгарганда хотирага ёзиб олади
+
     topic = st.text_input("🔍 Мавзу:", "Survival")
     region = st.selectbox("🌍 Давлат:", list(REGION_LANGS.keys()))
     days_back = st.select_slider("📅 Давр (кун):", options=[7, 30, 90, 180, 365], value=180)
-    
-    # 777 ЯНГИ ҚЎШИМЧА: Просмотр филтри
     min_views = st.selectbox("👁️ Min Кўришлар:", options=[0, 100000, 500000, 1000000, 5000000, 10000000], 
                              format_func=lambda x: "Ҳаммаси" if x == 0 else format_numbers(x))
-    
     min_outl = st.slider("🔥 Min Outlier:", 1, 50, 5)
     
     can_search = True
@@ -98,6 +99,7 @@ with st.sidebar:
         rem = 3 - st.session_state.search_count
         if rem <= 0: st.error("🚨 Лимит тугади!"); can_search = False
         else: st.warning(f"🎁 Имконият: {rem}")
+        
     search_btn = st.button("🚀 ТАҲЛИЛНИ БОШЛАШ", disabled=not can_search)
 
 # --- АСОСИЙ ПАНЕЛ ---
@@ -105,12 +107,13 @@ t1, t2, t3 = st.tabs(["🚀 ТАҲЛИЛ", "📜 ТАРИХ", "📖 ҚЎЛЛАН
 
 with t1:
     if search_btn:
-        if not api_key: st.error("API Key киритинг!")
+        if not st.session_state.saved_api_key:
+            st.error("API Key киритинг!")
         else:
             if not st.session_state.authenticated: st.session_state.search_count += 1
             st.session_state.search_history.append({"Вақт": datetime.now().strftime("%H:%M"), "Мавзу": topic})
             try:
-                youtube = googleapiclient.discovery.build("youtube", "v3", developerKey=api_key)
+                youtube = googleapiclient.discovery.build("youtube", "v3", developerKey=st.session_state.saved_api_key)
                 pub_after = (datetime.utcnow() - timedelta(days=days_back)).isoformat() + "Z"
                 res = youtube.search().list(q=topic, part="snippet", type="video", maxResults=50, order="viewCount", publishedAfter=pub_after, regionCode=region).execute()
                 
@@ -119,12 +122,12 @@ with t1:
                 for item in res['items']:
                     v_id = item['id']['videoId']
                     v_inf = youtube.videos().list(part="statistics,snippet", id=v_id).execute()['items'][0]
-                    c_inf = youtube.channels().list(part="statistics,snippet", id=item['snippet']['channelId']).execute()['items'][0]
+                    c_id = item['snippet']['channelId']
+                    c_inf = youtube.channels().list(part="statistics,snippet", id=c_id).execute()['items'][0]
                     
                     views, subs = int(v_inf['statistics'].get('viewCount', 0)), int(c_inf['statistics'].get('subscriberCount', 1))
                     outlier = round(views / (subs if subs > 1000 else 1000), 1)
                     
-                    # 777-ҚОИДА: Ҳам Вираллик, ҳам Минимал кўришлар бўйича филтрлаш
                     if outlier >= min_outl and views >= min_views:
                         all_titles += " " + v_inf['snippet']['title'].lower()
                         results.append({
@@ -145,17 +148,10 @@ with t1:
         res_data = st.session_state.last_results["data"]
         df = pd.DataFrame(res_data).sort_values(by="Вираллик", ascending=False)
         
+        # НИША ТАҲЛИЛИ
         avg_v = round(df["Вираллик"].mean(), 1) if not df.empty else 0
         st.markdown(f"<div class='niche-score'>📊 Ниша Баҳоси: {avg_v}x Viral Potential</div>", unsafe_allow_html=True)
         
-        c1_info, c2_info = st.columns(2)
-        with c1_info:
-            words = re.findall(r'\w+', st.session_state.last_results["titles"])
-            common = [w for w, c in collections.Counter(words).most_common(12) if len(w) > 4]
-            st.info(f"🔑 **Вирал калит сўзлар:** {', '.join(common)}")
-        with c2_info:
-            st.info(f"⏰ **Энг зур вақт:** Видеолар асосан 18:00 - 21:00 оралиғида энг кўп юкланган.")
-
         view_mode = st.radio("👀 Кўриниш:", ["Карточка", "Жадвал"], horizontal=True)
         
         if view_mode == "Карточка":
@@ -163,9 +159,9 @@ with t1:
                 col1, col2 = st.columns([1.5, 2.5])
                 with col1: st.image(row['Расм'], use_container_width=True)
                 with col2:
+                    # КАРТОЧКАДА ТЎҒРИДАН-ТЎҒРИ ЮТУБГА ЎТИШ
                     st.markdown(f"### [{row['Видео_Номи']}]({row['Ҳавола']})")
                     st.write(f"👤 **Канал:** {row['Канал']} | 📅 **Юкланган:** {row['Юкланган']}")
-                    st.write(f"🏗️ **Канал очилган:** {row['Канал_Очилган']}")
                     m1, m2, m3 = st.columns(3)
                     m1.markdown(f"<div class='metric-card'>🔥 Вираллик<br><span class='metric-value'>{row['Вираллик']}x</span></div>", unsafe_allow_html=True)
                     m2.markdown(f"<div class='metric-card'>👁️ Просмотр<br><span class='metric-value'>{format_numbers(row['Просмотр'])}</span></div>", unsafe_allow_html=True)
@@ -175,9 +171,11 @@ with t1:
             list_df = df.copy()
             list_df['Просмотр'] = list_df['Просмотр'].apply(format_numbers)
             list_df['Обуначи'] = list_df['Обуначи'].apply(format_numbers)
+            
+            # ЖАДВАЛДА ҲАМ ТЎҒРИДАН-ТЎҒРИ ЮТУБГА ЎТИШ
             st.dataframe(list_df[["Расм", "Видео_Номи", "Вираллик", "Просмотр", "Обуначи", "Юкланган", "Канал", "Ҳавола"]], 
                          column_config={
                              "Расм": st.column_config.ImageColumn("Превью"),
-                             "Видео_Номи": st.column_config.LinkColumn("Видео Номи (Босинг)", display_text=None),
+                             "Видео_Номи": st.column_config.LinkColumn("Видео Номи (Янги ойнада)", display_text=None),
                              "Ҳавола": st.column_config.LinkColumn("🔗 YouTube", display_text="Очиш")
                          }, use_container_width=True, hide_index=True)
