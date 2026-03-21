@@ -13,7 +13,7 @@ limit = st.number_input("Минимал кўрилиш сони (Глобал у
 # 3. Қидириш тугмаси
 if st.button("Қидиришни бошлаш"):
     # Бу ерга ўзингизнинг API KEY-ингизни қўясиз
-    api_key = "СИЗНИНГ_API_КАЛИТИНГИЗ" 
+    api_key = "AIzaSyAE-vwmdFa4Royu56-GArSpm93fg-DOUtM" 
     
     youtube = googleapiclient.discovery.build("youtube", "v3", developerKey=api_key)
     
