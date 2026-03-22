@@ -1008,7 +1008,13 @@ def show_sub_block(tab_id="main"):
 # ══════════════════════════════════════════
 # SEARCH LOGIC
 # ══════════════════════════════════════════
-if search_btn or st.session_state.pop('auto_search', False):
+# auto_search: pending=birinchi rerun, True=ikkinchi rerun (sidebar tayyor)
+_as = st.session_state.get("auto_search", False)
+if _as == "pending":
+    st.session_state["auto_search"] = True
+    st.rerun()
+if search_btn or _as is True:
+    st.session_state["auto_search"] = False
     topic = st.session_state.get("current_topic", "Survival")
     current_key = st.query_params.get("apikey","") or api_key
     if not current_key:
@@ -1081,7 +1087,6 @@ if search_btn or st.session_state.pop('auto_search', False):
                 st.session_state.results = results
                 st.session_state.last_topic = topic
                 st.session_state.search_done = True
-                st.session_state['auto_search'] = False
 
                 # Tarix — UTC ни UZ вақтга ўтказиш (+5)
                 now_uz = datetime.utcnow() + timedelta(hours=5)
@@ -1160,7 +1165,7 @@ with TAB_TREND:
                 # Chap panel input ga yozish + qidiruv boshlash
                 st.session_state["current_topic"] = n
                 st.session_state["topic_key_ver"] = st.session_state.get("topic_key_ver",0) + 1
-                st.session_state["auto_search"] = True
+                st.session_state["auto_search"] = "pending"
                 st.rerun()
     else:
         df = pd.DataFrame(st.session_state.results)
