@@ -616,7 +616,7 @@ def activate_by_code(code, uid):
     if code not in codes: return False,"❌ Kod topilmadi."
     c = codes[code]
     if c.get("used"):    return False,"❌ Bu kod allaqachon ishlatilgan."
-    if datetime.now() > datetime.fromisoformat(c["expires"]): return False,"❌ Код муддати тугаган."
+    if datetime.now() > datetime.fromisoformat(c["expires"]): return False,"❌ Kod muddati tugagan."
     activate_sub(uid, code)
     codes[code].update({"used":True,"used_by":uid,"used_at":datetime.now().isoformat()})
     db["activation_codes"] = codes; save_db(db)
@@ -786,12 +786,23 @@ uid = get_uid()
 # SIDEBAR
 # ══════════════════════════════════════════
 with st.sidebar:
-    # Theme toggle
+    # Theme toggle + Share button
     apply_theme()
+    t1, t2 = st.columns([1, 1])
     dark_icon = "🌙 Dark" if st.session_state.dark_mode else "☀️ Light"
-    if st.button(dark_icon, key="theme_btn", use_container_width=False):
+    if t1.button(dark_icon, key="theme_btn", use_container_width=True):
         st.session_state.dark_mode = not st.session_state.dark_mode
         st.rerun()
+
+    # Ulashish tugmasi
+    current_url = f"https://viral777.streamlit.app/?uid={uid}"
+    t2.markdown(
+        f"<a href='https://t.me/share/url?url={current_url}&text=🔥%20Viral%20777%20-%20YouTube%20Trend%20Analytics' "
+        f"target='_blank' style='display:block;text-align:center;background:#229ED9;color:#fff;"
+        f"border-radius:10px;padding:6px 4px;font-weight:700;font-size:13px;"
+        f"text-decoration:none;'>📤 Share</a>",
+        unsafe_allow_html=True
+    )
 
     # Logo
     st.markdown("""
@@ -879,30 +890,38 @@ with st.sidebar:
         label = f"✓ {niche}" if is_active else niche
         if niche_cols[col_idx].button(label, key=f"nch_{i}", use_container_width=True):
             st.session_state["current_topic"] = niche
+            st.session_state["topic_key_ver"] = st.session_state.get("topic_key_ver",0) + 1
             st.rerun()
 
     # topic — session_state dan olish
     if "current_topic" not in st.session_state:
         st.session_state["current_topic"] = "Survival"
+    if "topic_key_ver" not in st.session_state:
+        st.session_state["topic_key_ver"] = 0
 
+    # Key versiyasi o'zgarganda input qayta render bo'ladi (nisha/hint bosilganda)
     topic = st.text_input(
         "Yoki qidiruv matnini kiriting:",
         value=st.session_state["current_topic"],
         placeholder="Masalan: Survival, Finance...",
-        key="topic_input"
+        key=f"topic_input_{st.session_state['topic_key_ver']}"
     )
-    # Foydalanuvchi o'zi yozsa ham session_state yangilansin
+    # Foydalanuvchi o'zi yozganda session_state ni yangilash
     if topic != st.session_state["current_topic"]:
         st.session_state["current_topic"] = topic
 
-    # Search suggestions — faqat ko'rsatadi, bosilganda topic o'zgaradi
-    if topic and len(topic)>=2:
-        hints = [n for n in NICHES if topic.lower() in n.lower() and n.lower()!=topic.lower()][:4]
+    # Podkazka/hints — bosilganda input ga tushsin
+    raw_topic = st.session_state["current_topic"]
+    if raw_topic and len(raw_topic) >= 2:
+        hints = [n for n in NICHES if raw_topic.lower() in n.lower()
+                 and n.lower() != raw_topic.lower()][:4]
         if hints:
-            hint_cols = st.columns(len(hints))
+            h_cols = st.columns(len(hints))
             for hi, hn in enumerate(hints):
-                if hint_cols[hi].button(f"🔍 {hn}", key=f"hint_{hn}", use_container_width=True):
+                if h_cols[hi].button(f"🔍 {hn}", key=f"hint_{hn}_{st.session_state['topic_key_ver']}",
+                                      use_container_width=True):
                     st.session_state["current_topic"] = hn
+                    st.session_state["topic_key_ver"] += 1  # input ni majburan yangilash
                     st.rerun()
 
     region_label = st.selectbox("🌍 Bozor:", list(REGIONS.keys()))
@@ -1126,7 +1145,21 @@ with TAB_TREND:
         top_channel = df.iloc[0]['channel']
 
         # ── Top KPI ──
-        st.markdown(f"<div class='section-title'>📊 <b>{topic}</b> Nishasi — Umumiy Tahlil "
+        # Share row
+        share_col, title_col = st.columns([1, 5])
+        share_url = f"https://viral777.streamlit.app/?uid={uid}"
+        tg_url  = f"https://t.me/share/url?url={share_url}&text=🔥%20{topic}%20nishasi%20bo'yicha%20viral%20tahlil!"
+        tw_url  = f"https://twitter.com/intent/tweet?text=🔥%20{topic}%20viral%20score:%20{avg_outl}x%0A{share_url}"
+        share_col.markdown(
+            f"<div style='display:flex;gap:6px;margin-top:4px;'>"
+            f"<a href='{tg_url}' target='_blank' style='background:#229ED9;color:#fff;padding:6px 12px;"
+            f"border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;'>✈️ TG</a>"
+            f"<a href='{tw_url}' target='_blank' style='background:#1DA1F2;color:#fff;padding:6px 12px;"
+            f"border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;'>🐦 X</a>"
+            f"</div>",
+            unsafe_allow_html=True
+        )
+        title_col.markdown(f"<div class='section-title'>📊 <b>{topic}</b> Nishasi — Umumiy Tahlil "
                     f"<span>({len(df)} ta viral video topildi)</span></div>",
                     unsafe_allow_html=True)
 
@@ -1352,53 +1385,70 @@ with TAB_TABLE:
         st.info("🔍 Avval chap paneldan qidiruv boshlang.")
     else:
         df = pd.DataFrame(st.session_state.results)
-        df_show = df.copy()
-        # Yangi toza DataFrame — faqat kerakli ustunlar
-        table_data = pd.DataFrame({
-            "Rasm":      df["thumbnail"],
-            "Sarlavha":  df["title"],
-            "Kanal":     df["channel"],
-            "Score":     df["outlier"].round(1),
-            "Korishlar": df["views"].apply(fmt),
-            "Obunachi":  df["subs"].apply(fmt),
-            "Layklar":   df["likes"].apply(fmt),
-            "EngagePct": ((df["likes"]+df["comments"])/df["views"].clip(lower=1)*100).round(2),
-            "Sana":      df["published"].apply(uzb_date),
-            "Url":       df["url"],
-        })
 
-        st.markdown(f"<div class='section-title'>📊 Jadval <span>{len(table_data)} ta video</span></div>",
+        st.markdown(f"<div class='section-title'>📊 Jadval <span>{len(df)} ta video</span></div>",
                     unsafe_allow_html=True)
 
-        st.dataframe(
-            table_data,
-            column_config={
-                "Rasm":      st.column_config.ImageColumn("🖼", width="small"),
-                "Sarlavha":  st.column_config.TextColumn("📝 Sarlavha", width="large"),
-                "Kanal":     st.column_config.TextColumn("📺 Kanal"),
-                "Score":     st.column_config.NumberColumn("⚡ Score", format="%.1fx"),
-                "Korishlar": st.column_config.TextColumn("👁 Ko'rishlar"),
-                "Obunachi":  st.column_config.TextColumn("👥 Obunachi"),
-                "Layklar":   st.column_config.TextColumn("👍 Layklar"),
-                "EngagePct": st.column_config.NumberColumn("💬 Engage%", format="%.2f%%"),
-                "Sana":      st.column_config.TextColumn("📅 Sana"),
-                "Url":       st.column_config.LinkColumn("🔗 Ko'rish", display_text="▶ Ochish"),
-            },
-            use_container_width=True,
-            hide_index=True,
-            height=min(80+len(table_data)*42, 750)
-        )
+        # HTML jadval — har doim ko'rinadi, dark/light modeda ham
+        rows_html = ""
+        for _, row in df.iterrows():
+            engage = round((row["likes"]+row["comments"])/max(row["views"],1)*100, 2)
+            score  = row["outlier"]
+            if score >= 100:   sc_color = "#ff4757"
+            elif score >= 50:  sc_color = "#ffa502"
+            elif score >= 20:  sc_color = "#6c63ff"
+            else:              sc_color = "#2ed573"
+            rows_html += f"""
+            <tr>
+              <td><img src="{row['thumbnail']}" style="width:80px;height:45px;object-fit:cover;border-radius:6px;"></td>
+              <td><a href="{row['url']}" target="_blank"
+                     style="color:#9c93ff;text-decoration:none;font-weight:600;font-size:13px;
+                            display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
+                  {row['title'][:70]}...</a></td>
+              <td style="color:#ccccdd;font-size:12px;">{row['channel'][:20]}</td>
+              <td style="color:{sc_color};font-weight:800;font-size:15px;">{score}x</td>
+              <td style="color:#e8e8f0;font-weight:600;">{fmt(row['views'])}</td>
+              <td style="color:#aaaacc;">{fmt(row['subs'])}</td>
+              <td style="color:#aaaacc;">{fmt(row['likes'])}</td>
+              <td style="color:#6c63ff;font-weight:600;">{engage}%</td>
+              <td style="color:#666688;font-size:12px;">{uzb_date(row['published'])}</td>
+            </tr>"""
 
+        table_html = f"""
+        <div style="overflow-x:auto;border-radius:14px;border:1px solid #1e1e2e;margin-top:12px;">
+        <table style="width:100%;border-collapse:collapse;background:#0f0f1a;font-family:Inter,sans-serif;">
+          <thead>
+            <tr style="background:#1a1a2e;border-bottom:2px solid #2a2a4a;">
+              <th style="padding:12px 10px;color:#6c63ff;font-size:11px;text-transform:uppercase;letter-spacing:1px;text-align:left;">🖼</th>
+              <th style="padding:12px 10px;color:#6c63ff;font-size:11px;text-transform:uppercase;letter-spacing:1px;text-align:left;">Sarlavha</th>
+              <th style="padding:12px 10px;color:#6c63ff;font-size:11px;text-transform:uppercase;letter-spacing:1px;text-align:left;">Kanal</th>
+              <th style="padding:12px 10px;color:#6c63ff;font-size:11px;text-transform:uppercase;letter-spacing:1px;text-align:left;">⚡ Score</th>
+              <th style="padding:12px 10px;color:#6c63ff;font-size:11px;text-transform:uppercase;letter-spacing:1px;text-align:left;">👁 Ko'rish</th>
+              <th style="padding:12px 10px;color:#6c63ff;font-size:11px;text-transform:uppercase;letter-spacing:1px;text-align:left;">👥 Obuna</th>
+              <th style="padding:12px 10px;color:#6c63ff;font-size:11px;text-transform:uppercase;letter-spacing:1px;text-align:left;">👍 Layk</th>
+              <th style="padding:12px 10px;color:#6c63ff;font-size:11px;text-transform:uppercase;letter-spacing:1px;text-align:left;">💬 Engage</th>
+              <th style="padding:12px 10px;color:#6c63ff;font-size:11px;text-transform:uppercase;letter-spacing:1px;text-align:left;">📅 Sana</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows_html}
+          </tbody>
+        </table>
+        </div>
+        """
+        st.markdown(table_html, unsafe_allow_html=True)
+
+        st.markdown("<br>", unsafe_allow_html=True)
         _topic_name = st.session_state.get("last_topic","result")
         csv_data = pd.DataFrame({
-            "title":   df["title"],
-            "channel": df["channel"],
-            "score":   df["outlier"],
-            "views":   df["views"],
-            "subs":    df["subs"],
-            "likes":   df["likes"],
-            "comments":df["comments"],
-            "url":     df["url"],
+            "title":    df["title"],
+            "channel":  df["channel"],
+            "score":    df["outlier"],
+            "views":    df["views"],
+            "subs":     df["subs"],
+            "likes":    df["likes"],
+            "comments": df["comments"],
+            "url":      df["url"],
         }).to_csv(index=False)
         st.download_button(
             "⬇️ CSV yuklab olish", csv_data,
