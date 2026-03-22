@@ -1008,7 +1008,7 @@ def show_sub_block(tab_id="main"):
 # ══════════════════════════════════════════
 # SEARCH LOGIC
 # ══════════════════════════════════════════
-if search_btn or st.session_state.get('auto_search', False):
+if search_btn or st.session_state.pop('auto_search', False):
     topic = st.session_state.get("current_topic", "Survival")
     current_key = st.query_params.get("apikey","") or api_key
     if not current_key:
