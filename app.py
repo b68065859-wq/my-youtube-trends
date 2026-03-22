@@ -58,8 +58,57 @@ st.set_page_config(
     page_icon="🔥",
     layout="wide",
     initial_sidebar_state="expanded",
-    menu_items={}          # ← "Manage app" tugmasini yashiradi
+    menu_items={"Get Help":None,"Report a bug":None,"About":None}
 )
+
+# Dark/Light mode class injection
+def apply_theme():
+    if not st.session_state.get("dark_mode", True):
+        st.markdown("""
+        <script>
+        document.body.classList.add('light-bg');
+        document.querySelector('.stApp').classList.add('light-bg');
+        </script>
+        <style>
+        .stApp, .main, .block-container,
+        html, body {
+            background-color: #f0f2f8 !important;
+            color: #1a1a2e !important;
+        }
+        [data-testid="stSidebar"], [data-testid="stSidebar"] > div {
+            background: linear-gradient(180deg, #e8eaf6, #dde1f5) !important;
+            border-right: 1px solid #c5cae9 !important;
+        }
+        [data-testid="stSidebar"] * { color: #1a1a2e !important; }
+        .stat-card { background: #ffffff !important; border-color: #c5cae9 !important; box-shadow: 0 2px 12px rgba(0,0,0,0.08) !important; }
+        .stat-label { color: #7986cb !important; }
+        .stat-value { color: #1a1a2e !important; }
+        .video-card { background: #ffffff !important; border-color: #c5cae9 !important; }
+        .vc-title { color: #1a1a2e !important; }
+        .vc-channel { color: #7986cb !important; }
+        .vc-stat-val { color: #1a1a2e !important; }
+        .vc-stat-lbl { color: #9fa8da !important; }
+        .section-title { color: #1a1a2e !important; }
+        [data-baseweb="tab-list"] { background: #e8eaf6 !important; border-bottom: 1px solid #c5cae9 !important; }
+        [data-baseweb="tab"] { color: #7986cb !important; }
+        [aria-selected="true"][data-baseweb="tab"] { color: #3f51b5 !important; border-bottom-color: #3f51b5 !important; }
+        input, textarea { background: #ffffff !important; color: #1a1a2e !important; border-color: #c5cae9 !important; }
+        [data-baseweb="select"] > div { background: #ffffff !important; color: #1a1a2e !important; border-color: #c5cae9 !important; }
+        [data-baseweb="select"] span, [data-baseweb="select"] div { color: #1a1a2e !important; }
+        [data-baseweb="option"] { background: #ffffff !important; color: #1a1a2e !important; }
+        [data-baseweb="option"]:hover { background: #e8eaf6 !important; }
+        [data-baseweb="popover"], [data-baseweb="popover"] * { background: #ffffff !important; color: #1a1a2e !important; }
+        .niche-pill { background: #e8eaf6 !important; border-color: #c5cae9 !important; color: #3f51b5 !important; }
+        .search-hint { background: #e8eaf6 !important; border-color: #c5cae9 !important; color: #7986cb !important; }
+        .viral-score-box { background: #ffffff !important; border-color: #c5cae9 !important; }
+        [data-testid="stMarkdownContainer"] p { color: #3a3a5e !important; }
+        [data-testid="stAlert"] { background: #e8eaf6 !important; color: #1a1a2e !important; }
+        [data-testid="stDataFrame"] * { background: #ffffff !important; color: #1a1a2e !important; }
+        [data-testid="stDataFrame"] th { background: #e8eaf6 !important; color: #3f51b5 !important; }
+        .stButton > button { background: linear-gradient(135deg, #3f51b5, #5c6bc0) !important; }
+        header[data-testid="stHeader"] { background: #f0f2f8 !important; }
+        </style>
+        """, unsafe_allow_html=True)
 
 # ══════════════════════════════════════════
 # CSS — ViewStats Dark Pro Style
@@ -363,6 +412,70 @@ hr { border-color: #1e1e2e !important; }
     border-radius: 8px; padding: 8px 14px; margin-top: 4px;
     font-size: 12px; color: #666688;
 }
+
+/* ── LIGHT MODE ── */
+.light-mode html, .light-mode body,
+body.light .stApp, body.light .main, body.light .block-container {
+    background-color: #f5f5f5 !important;
+    color: #1a1a2e !important;
+}
+
+/* Theme toggle button */
+.theme-toggle {
+    position: fixed; top: 12px; right: 16px; z-index: 9999;
+    background: #1a1a2e; border: 1px solid #2a2a4a;
+    border-radius: 20px; padding: 6px 14px;
+    font-size: 13px; cursor: pointer; color: #fff;
+    transition: all 0.3s;
+}
+.theme-toggle:hover { background: #2a2a4a; }
+
+/* Light mode overrides */
+.light-bg html, .light-bg body,
+.light-bg .stApp, .light-bg .main, .light-bg .block-container {
+    background-color: #f0f2f8 !important;
+    color: #1a1a2e !important;
+}
+.light-bg [data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #e8eaf6, #dde1f5) !important;
+    border-right: 1px solid #c5cae9 !important;
+}
+.light-bg [data-testid="stSidebar"] * { color: #1a1a2e !important; }
+.light-bg .stat-card {
+    background: #ffffff !important;
+    border-color: #c5cae9 !important;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08) !important;
+}
+.light-bg .stat-label { color: #7986cb !important; }
+.light-bg .stat-value { color: #1a1a2e !important; }
+.light-bg .video-card { background: #ffffff !important; border-color: #c5cae9 !important; }
+.light-bg .vc-title   { color: #1a1a2e !important; }
+.light-bg .vc-channel { color: #7986cb !important; }
+.light-bg .vc-stat-val { color: #1a1a2e !important; }
+.light-bg .vc-stat-lbl { color: #9fa8da !important; }
+.light-bg .section-title { color: #1a1a2e !important; }
+.light-bg [data-baseweb="tab-list"] { background: #e8eaf6 !important; border-bottom: 1px solid #c5cae9 !important; }
+.light-bg [data-baseweb="tab"] { color: #7986cb !important; }
+.light-bg [aria-selected="true"][data-baseweb="tab"] { color: #3f51b5 !important; border-bottom-color: #3f51b5 !important; }
+.light-bg input, .light-bg textarea { background: #ffffff !important; color: #1a1a2e !important; border-color: #c5cae9 !important; }
+.light-bg [data-baseweb="select"] > div { background: #ffffff !important; color: #1a1a2e !important; border-color: #c5cae9 !important; }
+.light-bg [data-baseweb="select"] span, .light-bg [data-baseweb="select"] div { color: #1a1a2e !important; }
+.light-bg [data-baseweb="option"] { background: #ffffff !important; color: #1a1a2e !important; }
+.light-bg [data-baseweb="option"]:hover { background: #e8eaf6 !important; }
+.light-bg [data-baseweb="popover"], .light-bg [data-baseweb="popover"] * { background: #ffffff !important; color: #1a1a2e !important; }
+.light-bg .niche-pill { background: #e8eaf6 !important; border-color: #c5cae9 !important; color: #3f51b5 !important; }
+.light-bg .search-hint { background: #e8eaf6 !important; border-color: #c5cae9 !important; color: #7986cb !important; }
+.light-bg .vs-logo { background: linear-gradient(135deg, #3f51b5, #e91e63); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.light-bg .vs-tagline { color: #9fa8da !important; }
+.light-bg .viral-score-box { background: #ffffff !important; border-color: #c5cae9 !important; }
+.light-bg [data-testid="stMarkdownContainer"] p { color: #3a3a5e !important; }
+.light-bg hr { border-color: #c5cae9 !important; }
+.light-bg [data-testid="stAlert"] { background: #e8eaf6 !important; color: #1a1a2e !important; }
+.light-bg [data-testid="stDataFrame"] * { background: #ffffff !important; color: #1a1a2e !important; }
+.light-bg [data-testid="stDataFrame"] th { background: #e8eaf6 !important; color: #3f51b5 !important; }
+.light-bg .stButton > button {
+    background: linear-gradient(135deg, #3f51b5, #5c6bc0) !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -588,7 +701,8 @@ REGIONS = {"🇺🇸 US":"US","🇬🇧 GB":"GB","🇺🇿 UZ":"UZ",
 # SESSION
 # ══════════════════════════════════════════
 for k,v in [("authenticated",False),("results",None),
-             ("history",[]),("last_topic",""),("search_done",False)]:
+             ("history",[]),("last_topic",""),("search_done",False),
+             ("dark_mode",True),("current_topic","Survival")]:
     if k not in st.session_state: st.session_state[k]=v
 
 uid = get_uid()
@@ -597,6 +711,13 @@ uid = get_uid()
 # SIDEBAR
 # ══════════════════════════════════════════
 with st.sidebar:
+    # Theme toggle
+    apply_theme()
+    dark_icon = "🌙 Dark" if st.session_state.dark_mode else "☀️ Light"
+    if st.button(dark_icon, key="theme_btn", use_container_width=False):
+        st.session_state.dark_mode = not st.session_state.dark_mode
+        st.rerun()
+
     # Logo
     st.markdown("""
     <div class="vs-header">
@@ -650,16 +771,26 @@ with st.sidebar:
 
     st.markdown("**🔍 Мавзу / Ниша**")
 
-    # Niche quick select
+    # Niche quick select — session_state orqali to'g'ri ishlaydi
     niche_cols = st.columns(3)
-    selected_niche = ""
     for i, niche in enumerate(NICHES[:9]):
         if niche_cols[i%3].button(niche, key=f"n_{niche}", use_container_width=True):
-            selected_niche = niche
+            st.session_state["current_topic"] = niche
+            st.rerun()
 
-    topic_default = selected_niche or st.session_state.get("last_topic","Survival")
-    topic = st.text_input("Ёки қидирув матнини киритинг:", value=topic_default,
-                          placeholder="Масалан: Survival, Finance...")
+    # topic — session_state dan olish
+    if "current_topic" not in st.session_state:
+        st.session_state["current_topic"] = "Survival"
+
+    topic = st.text_input(
+        "Ёки қидирув матнини киритинг:",
+        value=st.session_state["current_topic"],
+        placeholder="Масалан: Survival, Finance...",
+        key="topic_input"
+    )
+    # Foydalanuvchi o'zi yozsa ham session_state yangilansin
+    if topic != st.session_state["current_topic"]:
+        st.session_state["current_topic"] = topic
 
     # Search suggestions hint
     if topic and len(topic)>=2:
@@ -750,6 +881,7 @@ def show_sub_block():
 # SEARCH LOGIC
 # ══════════════════════════════════════════
 if search_btn:
+    topic = st.session_state.get("current_topic", "Survival")
     current_key = st.query_params.get("apikey","") or api_key
     if not current_key:
         st.error("‼️ YouTube API Key киритилмаган!")
