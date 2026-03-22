@@ -728,7 +728,8 @@ with st.sidebar:
     if t1.button(dark_icon, key="theme_btn", use_container_width=True):
         st.session_state.dark_mode = not st.session_state.dark_mode
         st.rerun()
-    tg_share = f"https://t.me/share/url?url={current_url}&text=🔥%20Viral%20777%20-%20YouTube%20Trend%20Analytics"
+    _app_url = "https://my-youtube-trends-nk9rk2csy8hjj6dvhfbgku.streamlit.app/"
+    tg_share = f"https://t.me/share/url?url={_app_url}&text=🔥%20Viral%20777%20-%20YouTube%20Trend%20Analytics%20platformasi"
     t2.markdown(
         f"<a href='{tg_share}' target='_blank' style='display:block;text-align:center;"
         f"background:#229ED9;color:#fff;border-radius:10px;padding:6px 4px;"
@@ -1051,17 +1052,7 @@ with TAB_TREND:
             max_outl    = df['outlier'].max()
             top_channel = df.iloc[0]['channel']
 
-            share_col, title_col = st.columns([1, 5])
-            tg_url = f"https://t.me/share/url?url={current_url}&text=🔥%20{st.session_state.last_topic}%20viral%20tahlil!"
-            tw_url = f"https://twitter.com/intent/tweet?text=🔥%20{st.session_state.last_topic}%20viral%20score:%20{avg_outl}x%0A{current_url}"
-            share_col.markdown(
-                f"<div style='display:flex;gap:6px;margin-top:4px;'>"
-                f"<a href='{tg_url}' target='_blank' style='background:#229ED9;color:#fff;"
-                f"padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;'>✈️ TG</a>"
-                f"<a href='{tw_url}' target='_blank' style='background:#1DA1F2;color:#fff;"
-                f"padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;'>🐦 X</a>"
-                f"</div>", unsafe_allow_html=True)
-            title_col.markdown(
+            st.markdown(
                 f"<div class='section-title'>📊 <b>{st.session_state.last_topic}</b> Nishasi — Umumiy Tahlil "
                 f"<span>({len(df)} ta viral video topildi)</span></div>",
                 unsafe_allow_html=True)
