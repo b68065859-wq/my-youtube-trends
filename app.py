@@ -22,7 +22,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
-import re, json, os, base64, uuid, threading, random, string, time
+import re, json, os, base64, uuid, threading, random, string, time, html as html_mod
 
 try:
     import telebot
@@ -154,38 +154,29 @@ st.markdown("""
 /* ── RESET ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; }
 
-/* ── HEADER, MANAGE APP, FOOTER YASHIRISH ── */
+/* ── HEADER, MANAGE APP, FOOTER — KUCHLI YASHIRISH ── */
 #MainMenu { visibility: hidden !important; display: none !important; }
 header[data-testid="stHeader"] { 
     background: #0a0a0f !important;
-    height: 0 !important;
-    min-height: 0 !important;
-    padding: 0 !important;
-    overflow: hidden !important;
+    height: 0 !important; min-height: 0 !important;
+    padding: 0 !important; overflow: hidden !important;
 }
-[data-testid="stToolbar"] { display: none !important; visibility: hidden !important; }
-[data-testid="manage-app-button"] { display: none !important; visibility: hidden !important; }
-button[data-testid="manage-app-button"] { display: none !important; }
-[class*="manage"] { display: none !important; }
-[class*="viewerBadge"] { display: none !important; }
-[title="Manage app"] { display: none !important; }
-iframe[title="streamlit_app"] { border: none !important; }
-.reportview-container .main footer { display: none !important; }
-footer, footer * { display: none !important; visibility: hidden !important; }
-[data-testid="stBottom"] { display: none !important; }
-/* Streamlit branding & manage app */
-#stDecoration { display: none !important; }
-[class^="styles_viewerBadge"] { display: none !important; }
-.styles_viewerBadge__CvC9N { display: none !important; }
-[class*="StatusWidget"] { display: none !important; }
-[class*="toolbarActions"] { display: none !important; }
-[data-testid="stStatusWidget"] { display: none !important; }
-button[title="View app in Streamlit Community Cloud"] { display: none !important; }
-.stApp > header { display: none !important; }
-section[data-testid="stSidebarNav"] { display: none !important; }
-/* Bottom right manage app button */
-div[class*="fixedDataTableRowLayout"] { display:none!important; }
+[data-testid="stToolbar"]         { display: none !important; }
+[data-testid="stStatusWidget"]    { display: none !important; }
 [data-testid="stAppDeployButton"] { display: none !important; }
+[data-testid="manage-app-button"] { display: none !important; }
+[data-testid="stBottom"]          { display: none !important; }
+button[data-testid="manage-app-button"] { display: none !important; }
+[class*="manage"]         { display: none !important; }
+[class*="viewerBadge"]    { display: none !important; }
+[class*="StatusWidget"]   { display: none !important; }
+[class*="toolbarActions"] { display: none !important; }
+[class^="styles_viewerBadge"] { display: none !important; }
+[title="Manage app"] { display: none !important; }
+#stDecoration        { display: none !important; }
+footer, footer *     { display: none !important; }
+.stApp > header      { display: none !important; }
+section[data-testid="stSidebarNav"] { display: none !important; }
 
 /* ── GLOBAL ── */
 html, body, .stApp, .main, .block-container {
@@ -772,8 +763,20 @@ REGIONS = {"🇺🇸 US":"US","🇬🇧 GB":"GB","🇺🇿 UZ":"UZ",
 # ══════════════════════════════════════════
 for k,v in [("authenticated",False),("results",None),
              ("history",[]),("last_topic",""),("search_done",False),
-             ("dark_mode",True),("current_topic","Survival")]:
+             ("dark_mode",True),("current_topic","Survival"),
+             ("topic_key_ver",0)]:
     if k not in st.session_state: st.session_state[k]=v
+
+# History fayldan tiklash (refresh da ham qolsin)
+if not st.session_state.history:
+    try:
+        _uid_tmp = st.query_params.get("uid","")
+        if _uid_tmp:
+            hist_file = f"/tmp/v777_hist_{_uid_tmp[:12]}.json"
+            if os.path.exists(hist_file):
+                with open(hist_file) as hf:
+                    st.session_state.history = json.load(hf)
+    except: pass
 
 # Admin login — URL va st.secrets orqali saqlaymiz
 _admin_secret = "v777admin2024"
@@ -795,7 +798,21 @@ with st.sidebar:
         st.rerun()
 
     # Ulashish tugmasi
-    current_url = f"https://viral777.streamlit.app/?uid={uid}"
+    # To'g'ri share URL — Streamlit Cloud dagi haqiqiy URL
+    try:
+        _base_url = st.secrets["general"].get("APP_URL", "")
+    except:
+        _base_url = ""
+    if not _base_url:
+        # Streamlit Cloud da avtomatik URL olish
+        try:
+            from streamlit.web.server.websocket_headers import _get_websocket_headers
+            _hdrs = _get_websocket_headers()
+            _host = _hdrs.get("Host", "viral777.streamlit.app")
+            _base_url = f"https://{_host}"
+        except:
+            _base_url = "https://viral777.streamlit.app"
+    current_url = f"{_base_url}/?uid={uid}"
     t2.markdown(
         f"<a href='https://t.me/share/url?url={current_url}&text=🔥%20Viral%20777%20-%20YouTube%20Trend%20Analytics' "
         f"target='_blank' style='display:block;text-align:center;background:#229ED9;color:#fff;"
@@ -1081,14 +1098,27 @@ if search_btn:
 
                 # Tarix — UTC ни UZ вақтга ўтказиш (+5)
                 now_uz = datetime.utcnow() + timedelta(hours=5)
-                st.session_state.history.append({
+                new_entry = {
                     "Vaqt":    now_uz.strftime("%H:%M"),
                     "Sana":    now_uz.strftime("%d.%m"),
                     "Mavzu":   topic,
                     "Bozor":   region_label,
                     "Davr":    f"{days_sel} kun",
                     "Topildi": len(results),
-                })
+                }
+                st.session_state.history.append(new_entry)
+                # Faylga saqlash — refresh da ham saqlansin
+                try:
+                    hist_file = f"/tmp/v777_hist_{uid[:12]}.json"
+                    existing = []
+                    if os.path.exists(hist_file):
+                        with open(hist_file) as hf:
+                            existing = json.load(hf)
+                    existing.append(new_entry)
+                    existing = existing[-50:]  # oxirgi 50 ta
+                    with open(hist_file, "w") as hf:
+                        json.dump(existing, hf)
+                except: pass
 
                 if not st.session_state.authenticated and not is_subscribed(uid):
                     use_trial(uid)
@@ -1147,7 +1177,7 @@ with TAB_TREND:
         # ── Top KPI ──
         # Share row
         share_col, title_col = st.columns([1, 5])
-        share_url = f"https://viral777.streamlit.app/?uid={uid}"
+        share_url = current_url
         tg_url  = f"https://t.me/share/url?url={share_url}&text=🔥%20{topic}%20nishasi%20bo'yicha%20viral%20tahlil!"
         tw_url  = f"https://twitter.com/intent/tweet?text=🔥%20{topic}%20viral%20score:%20{avg_outl}x%0A{share_url}"
         share_col.markdown(
@@ -1390,52 +1420,55 @@ with TAB_TABLE:
                     unsafe_allow_html=True)
 
         # HTML jadval — har doim ko'rinadi, dark/light modeda ham
-        rows_html = ""
+        rows_html = []
         for _, row in df.iterrows():
-            engage = round((row["likes"]+row["comments"])/max(row["views"],1)*100, 2)
-            score  = row["outlier"]
+            engage  = round((row["likes"]+row["comments"])/max(row["views"],1)*100, 2)
+            score   = row["outlier"]
+            thumb   = html_mod.escape(str(row["thumbnail"]))
+            url     = html_mod.escape(str(row["url"]))
+            title   = html_mod.escape(str(row["title"])[:70])
+            channel = html_mod.escape(str(row["channel"])[:22])
+            sana    = html_mod.escape(uzb_date(str(row["published"])))
             if score >= 100:   sc_color = "#ff4757"
             elif score >= 50:  sc_color = "#ffa502"
             elif score >= 20:  sc_color = "#6c63ff"
             else:              sc_color = "#2ed573"
-            rows_html += f"""
-            <tr>
-              <td><img src="{row['thumbnail']}" style="width:80px;height:45px;object-fit:cover;border-radius:6px;"></td>
-              <td><a href="{row['url']}" target="_blank"
-                     style="color:#9c93ff;text-decoration:none;font-weight:600;font-size:13px;
-                            display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
-                  {row['title'][:70]}...</a></td>
-              <td style="color:#ccccdd;font-size:12px;">{row['channel'][:20]}</td>
-              <td style="color:{sc_color};font-weight:800;font-size:15px;">{score}x</td>
-              <td style="color:#e8e8f0;font-weight:600;">{fmt(row['views'])}</td>
-              <td style="color:#aaaacc;">{fmt(row['subs'])}</td>
-              <td style="color:#aaaacc;">{fmt(row['likes'])}</td>
-              <td style="color:#6c63ff;font-weight:600;">{engage}%</td>
-              <td style="color:#666688;font-size:12px;">{uzb_date(row['published'])}</td>
-            </tr>"""
+            rows_html.append(
+                f"<tr>"
+                f"<td style='padding:8px;'><img src='{thumb}' "
+                f"style='width:88px;height:50px;object-fit:cover;border-radius:6px;'></td>"
+                f"<td style='padding:8px 10px;max-width:280px;'>"
+                f"<a href='{url}' target='_blank' "
+                f"style='color:#9c93ff;text-decoration:none;font-weight:600;font-size:13px;"
+                f"line-height:1.4;'>{title}…</a></td>"
+                f"<td style='padding:8px 10px;color:#aaaacc;font-size:12px;'>{channel}</td>"
+                f"<td style='padding:8px 10px;color:{sc_color};font-weight:800;font-size:15px;'>{score}x</td>"
+                f"<td style='padding:8px 10px;color:#e8e8f0;font-weight:600;'>{fmt(row['views'])}</td>"
+                f"<td style='padding:8px 10px;color:#aaaacc;'>{fmt(row['subs'])}</td>"
+                f"<td style='padding:8px 10px;color:#aaaacc;'>{fmt(row['likes'])}</td>"
+                f"<td style='padding:8px 10px;color:#6c63ff;font-weight:700;'>{engage}%</td>"
+                f"<td style='padding:8px 10px;color:#555577;font-size:12px;'>{sana}</td>"
+                f"</tr>"
+            )
 
-        table_html = f"""
-        <div style="overflow-x:auto;border-radius:14px;border:1px solid #1e1e2e;margin-top:12px;">
-        <table style="width:100%;border-collapse:collapse;background:#0f0f1a;font-family:Inter,sans-serif;">
-          <thead>
-            <tr style="background:#1a1a2e;border-bottom:2px solid #2a2a4a;">
-              <th style="padding:12px 10px;color:#6c63ff;font-size:11px;text-transform:uppercase;letter-spacing:1px;text-align:left;">🖼</th>
-              <th style="padding:12px 10px;color:#6c63ff;font-size:11px;text-transform:uppercase;letter-spacing:1px;text-align:left;">Sarlavha</th>
-              <th style="padding:12px 10px;color:#6c63ff;font-size:11px;text-transform:uppercase;letter-spacing:1px;text-align:left;">Kanal</th>
-              <th style="padding:12px 10px;color:#6c63ff;font-size:11px;text-transform:uppercase;letter-spacing:1px;text-align:left;">⚡ Score</th>
-              <th style="padding:12px 10px;color:#6c63ff;font-size:11px;text-transform:uppercase;letter-spacing:1px;text-align:left;">👁 Ko'rish</th>
-              <th style="padding:12px 10px;color:#6c63ff;font-size:11px;text-transform:uppercase;letter-spacing:1px;text-align:left;">👥 Obuna</th>
-              <th style="padding:12px 10px;color:#6c63ff;font-size:11px;text-transform:uppercase;letter-spacing:1px;text-align:left;">👍 Layk</th>
-              <th style="padding:12px 10px;color:#6c63ff;font-size:11px;text-transform:uppercase;letter-spacing:1px;text-align:left;">💬 Engage</th>
-              <th style="padding:12px 10px;color:#6c63ff;font-size:11px;text-transform:uppercase;letter-spacing:1px;text-align:left;">📅 Sana</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows_html}
-          </tbody>
-        </table>
-        </div>
-        """
+        th_style = "padding:12px 10px;color:#9c93ff;font-size:11px;text-transform:uppercase;letter-spacing:1px;text-align:left;border-bottom:2px solid #2a2a4a;white-space:nowrap;"
+        table_html = (
+            "<div style='overflow-x:auto;border-radius:14px;border:1px solid #1e1e2e;margin-top:12px;'>"
+            "<table style='width:100%;border-collapse:collapse;background:#0f0f1a;font-family:Inter,sans-serif;'>"
+            "<thead><tr style='background:#1a1a2e;'>"
+            f"<th style='{th_style}'>🖼</th>"
+            f"<th style='{th_style}'>Sarlavha</th>"
+            f"<th style='{th_style}'>Kanal</th>"
+            f"<th style='{th_style}'>⚡ Score</th>"
+            f"<th style='{th_style}'>👁 Ko'rish</th>"
+            f"<th style='{th_style}'>👥 Obuna</th>"
+            f"<th style='{th_style}'>👍 Layk</th>"
+            f"<th style='{th_style}'>💬 Engage</th>"
+            f"<th style='{th_style}'>📅 Sana</th>"
+            "</tr></thead>"
+            "<tbody>" + "".join(rows_html) + "</tbody>"
+            "</table></div>"
+        )
         st.markdown(table_html, unsafe_allow_html=True)
 
         st.markdown("<br>", unsafe_allow_html=True)
