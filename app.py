@@ -71,13 +71,31 @@ st.markdown("""
 /* ── RESET ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; }
 
+/* ── ЮҚОРИДАГИ ОҚ HEADER ВА MANAGE APP НИ ЯШИРИШ ── */
+#MainMenu { visibility: hidden !important; }
+header[data-testid="stHeader"] { 
+    background: #0a0a0f !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+}
+[data-testid="stToolbar"] { display: none !important; }
+[data-testid="manage-app-button"] { display: none !important; }
+iframe[title="streamlit_app"] { border: none !important; }
+.reportview-container .main footer { display: none !important; }
+footer { display: none !important; }
+
 /* ── GLOBAL ── */
 html, body, .stApp, .main, .block-container {
     background-color: #0a0a0f !important;
     color: #e8e8f0 !important;
     font-family: 'Inter', sans-serif !important;
 }
-.block-container { padding: 1.5rem 2rem !important; max-width: 1400px !important; }
+.block-container { 
+    padding: 1.5rem 2rem !important; 
+    max-width: 1400px !important;
+    padding-top: 1rem !important;
+}
 
 /* ── SIDEBAR ── */
 [data-testid="stSidebar"] {
@@ -105,12 +123,33 @@ input, textarea, [data-baseweb="input"] input {
     border: 1px solid #2a2a4a !important;
     border-radius: 8px !important;
 }
-[data-baseweb="select"] > div { background: #1a1a2e !important; color: #fff !important; border: 1px solid #2a2a4a !important; border-radius: 8px !important; }
-[data-baseweb="option"] { background: #1a1a2e !important; color: #fff !important; }
-[data-baseweb="option"]:hover { background: #2a2a4a !important; }
+
+/* ── SELECTBOX FULL FIX ── */
+[data-baseweb="select"] { color: #ffffff !important; }
+[data-baseweb="select"] > div {
+    background: #1a1a2e !important;
+    color: #ffffff !important;
+    border: 1px solid #2a2a4a !important;
+    border-radius: 8px !important;
+}
+[data-baseweb="select"] div,
+[data-baseweb="select"] span,
+[data-baseweb="select"] p,
+[data-baseweb="select"] input,
+[data-baseweb="select"] [class*="placeholder"],
+[data-baseweb="select"] [class*="singleValue"],
+[data-baseweb="select"] [class*="ValueContainer"] { color: #ffffff !important; }
+[data-baseweb="select"] svg { fill: #ffffff !important; }
+[data-baseweb="option"] { background: #1a1a2e !important; color: #ffffff !important; }
+[data-baseweb="option"]:hover,
+[data-baseweb="option"][aria-selected="true"] { background: #2a2a4a !important; color: #ffffff !important; }
 [data-baseweb="popover"] { background: #1a1a2e !important; border: 1px solid #2a2a4a !important; }
+[data-baseweb="popover"] * { background: #1a1a2e !important; color: #ffffff !important; }
 [data-baseweb="menu"] { background: #1a1a2e !important; }
-[data-baseweb="select"] span, li[role="option"] { color: #fff !important; }
+[data-baseweb="menu"] * { color: #ffffff !important; }
+li[role="option"], li[role="option"] * { color: #ffffff !important; background: #1a1a2e !important; }
+li[role="option"]:hover { background: #2a2a4a !important; }
+[data-testid="stSelectbox"] label { color: #e8e8f0 !important; }
 
 /* ── RADIO ── */
 [role="radiogroup"] label, [role="radiogroup"] p,
