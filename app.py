@@ -1280,7 +1280,14 @@ with TAB_HISTORY:
         st.markdown(hist_html, unsafe_allow_html=True)
         st.markdown("<br>", unsafe_allow_html=True)
         if st.button("🗑 Tarixni tozalash"):
-            st.session_state.history=[]; st.rerun()
+            st.session_state.history = []
+            # Fayldan ham o'chirish
+            try:
+                hist_file = f"/tmp/v777_hist_{uid[:12]}.json"
+                if os.path.exists(hist_file):
+                    os.remove(hist_file)
+            except: pass
+            st.rerun()
     else:
         st.info("🔍 Hali qidiruv amalga oshirilmagan.")
 
