@@ -173,10 +173,19 @@ iframe[title="streamlit_app"] { border: none !important; }
 .reportview-container .main footer { display: none !important; }
 footer, footer * { display: none !important; visibility: hidden !important; }
 [data-testid="stBottom"] { display: none !important; }
-/* Streamlit branding */
+/* Streamlit branding & manage app */
 #stDecoration { display: none !important; }
 [class^="styles_viewerBadge"] { display: none !important; }
 .styles_viewerBadge__CvC9N { display: none !important; }
+[class*="StatusWidget"] { display: none !important; }
+[class*="toolbarActions"] { display: none !important; }
+[data-testid="stStatusWidget"] { display: none !important; }
+button[title="View app in Streamlit Community Cloud"] { display: none !important; }
+.stApp > header { display: none !important; }
+section[data-testid="stSidebarNav"] { display: none !important; }
+/* Bottom right manage app button */
+div[class*="fixedDataTableRowLayout"] { display:none!important; }
+[data-testid="stAppDeployButton"] { display: none !important; }
 
 /* ── GLOBAL ── */
 html, body, .stApp, .main, .block-container {
@@ -636,37 +645,37 @@ def start_bot():
         oid = f"V777_{uuid.uuid4().hex[:10].upper()}"
         mk = telebot.types.InlineKeyboardMarkup(row_width=1)
         mk.add(
-            telebot.types.InlineKeyboardButton("💳 Payme орқали тўлаш",  url=payme_url(oid)),
-            telebot.types.InlineKeyboardButton("⚡ Click орқали тўлаш",   url=click_url(oid)),
-            telebot.types.InlineKeyboardButton("✅ Тўлов қилдим — код олиш",
+            telebot.types.InlineKeyboardButton("💳 Payme orqali to'lash",  url=payme_url(oid)),
+            telebot.types.InlineKeyboardButton("⚡ Click orqali to'lash",   url=click_url(oid)),
+            telebot.types.InlineKeyboardButton("✅ To'lov qildim — kod olish",
                                                callback_data=f"paid:{oid}"),
         )
         bot.send_message(msg.chat.id,
-            f"👋 *Viral 777 Analytics*га хуш келибсиз!\n\n"
-            f"🔥 YouTube вирал таҳлил платформаси\n\n"
-            f"💰 *Ойлик обуна:* `{SUBSCRIPTION_PRICE:,} so'm`\n"
+            f"👋 *Viral 777 Analytics*ga xush kelibsiz!\n\n"
+            f"🔥 YouTube viral tahlil platformasi\n\n"
+            f"💰 *Oylik obuna:* `{SUBSCRIPTION_PRICE:,} so'm`\n"
             f"📅 30 kun · ♾️ Cheksiz qidiruv · 📊 Trend tahlili\n\n"
-            f"Тўловни амалга ошириб, *\"Тўлов қилдим\"* тугмасини босинг:",
+            f"To'lovni amalga oshirib, *\"To'lov qildim\"* tugmasini bosing:",
             parse_mode="Markdown", reply_markup=mk)
 
     @bot.callback_query_handler(func=lambda c: c.data.startswith("paid:"))
     def h_paid(call):
         oid = call.data.split(":",1)[1]
         tg_id = call.from_user.id
-        bot.answer_callback_query(call.id, "⏳ Текширилмоқда...")
+        bot.answer_callback_query(call.id, "⏳ Tekshirilmoqda...")
         code = gen_code()
         save_code(code, tg_id, oid)
         bot.send_message(tg_id,
-            f"✅ *Тўлов қабул қилинди!*\n\n"
-            f"🔑 Активация кодингиз:\n\n"
+            f"✅ *To'lov qabul qilindi!*\n\n"
+            f"🔑 Aktivatsiya kodingiz:\n\n"
             f"```\n{code}\n```\n\n"
-            f"📌 Сайтга қайтинг ва ушбу кодни киритинг.\n"
-            f"⏰ Код *24 соат* амал қилади.",
+            f"📌 Saytga qayting va ushbu kodni kiriting.\n"
+            f"⏰ Kod *24 soat* amal qiladi.",
             parse_mode="Markdown")
         if ADMIN_CHAT_ID:
             try:
                 bot.send_message(int(ADMIN_CHAT_ID),
-                    f"💰 *Янги тўлов!*\n👤 {call.from_user.first_name} (`{tg_id}`)\n"
+                    f"💰 *Yangi to'lov!*\n👤 {call.from_user.first_name} (`{tg_id}`)\n"
                     f"📋 `{oid}`\n🔑 `{code}`\n💵 {SUBSCRIPTION_PRICE:,} so'm\n"
                     f"🕐 {datetime.now().strftime('%d.%m.%Y %H:%M')}",
                     parse_mode="Markdown")
@@ -678,11 +687,11 @@ def start_bot():
         db=load_db(); u={k:v for k,v in db.items() if k!="activation_codes"}
         c=db.get("activation_codes",{})
         bot.send_message(msg.chat.id,
-            f"📊 *Статистика*\n\n"
-            f"👥 Фойдаланувчи: `{len(u)}`\n"
-            f"✅ Фаол обуна: `{sum(1 for x in u.values() if x.get('subscribed'))}`\n"
-            f"🔑 Ишлатилган: `{sum(1 for x in c.values() if x.get('used'))}`\n"
-            f"⏳ Кутилаётган: `{sum(1 for x in c.values() if not x.get('used'))}`",
+            f"📊 *Statistika*\n\n"
+            f"👥 Foydalanuvchi: `{len(u)}`\n"
+            f"✅ Faol obuna: `{sum(1 for x in u.values() if x.get('subscribed'))}`\n"
+            f"🔑 Ishlatilgan: `{sum(1 for x in c.values() if x.get('used'))}`\n"
+            f"⏳ Kutilayotgan: `{sum(1 for x in c.values() if not x.get('used'))}`",
             parse_mode="Markdown")
 
     @bot.message_handler(commands=['kod'])
@@ -693,9 +702,9 @@ def start_bot():
         code=gen_code(); save_code(code, parts[1], f"MANUAL_{uuid.uuid4().hex[:6]}", note="manual")
         try:
             bot.send_message(int(parts[1]),
-                f"✅ *Активация кодингиз:*\n\n```\n{code}\n```\n\nСайтга киринг ва кодни киритинг.",
+                f"✅ *Aktivatsiya kodingiz:*\n\n```\n{code}\n```\n\nSaytga kiring va kodni kiriting.",
                 parse_mode="Markdown")
-            bot.send_message(msg.chat.id, f"✅ Юборildi: `{code}`", parse_mode="Markdown")
+            bot.send_message(msg.chat.id, f"✅ Yuborildi: `{code}`", parse_mode="Markdown")
         except Exception as e:
             bot.send_message(msg.chat.id, f"❌ {e}")
 
@@ -720,16 +729,16 @@ def fmt(n):
     return str(n)
 
 def uzb_date(iso):
-    M={1:"Янв",2:"Фев",3:"Мар",4:"Апр",5:"Май",6:"Июн",
-       7:"Июл",8:"Авг",9:"Сен",10:"Окт",11:"Ноя",12:"Дек"}
+    M={1:"Yan",2:"Fev",3:"Mar",4:"Apr",5:"May",6:"Iyn",
+       7:"Iyl",8:"Avg",9:"Sen",10:"Okt",11:"Noy",12:"Dek"}
     try:
         dt=datetime.strptime(re.sub(r'\.\d+Z','Z',iso),'%Y-%m-%dT%H:%M:%SZ')
         now=datetime.utcnow(); diff=now-dt
-        if diff.days==0:    return "Бугун"
-        if diff.days==1:    return "Кеча"
-        if diff.days<7:     return f"{diff.days} kun олdin"
-        if diff.days<30:    return f"{diff.days//7} ҳафта олdin"
-        if diff.days<365:   return f"{diff.days//30} ой олdin"
+        if diff.days==0:    return "Bugun"
+        if diff.days==1:    return "Kecha"
+        if diff.days<7:     return f"{diff.days} kun oldin"
+        if diff.days<30:    return f"{diff.days//7} hafta oldin"
+        if diff.days<365:   return f"{diff.days//30} oy oldin"
         return f"{dt.day} {M[dt.month]} {dt.year}"
     except: return iso[:10]
 
@@ -743,10 +752,10 @@ def get_uid():
     st.session_state.uid=new; st.query_params["uid"]=new; return new
 
 def viral_badge(score):
-    if score>=100: return '<span class="vc-badge fire">🔥 Мега Вирал</span>'
-    if score>=50:  return '<span class="vc-badge fire">🚀 Вирал</span>'
-    if score>=20:  return '<span class="vc-badge hot">⚡ Трендда</span>'
-    return '<span class="vc-badge ok">✅ Яхши</span>'
+    if score>=100: return '<span class="vc-badge fire">🔥 Mega Viral</span>'
+    if score>=50:  return '<span class="vc-badge fire">🚀 Viral</span>'
+    if score>=20:  return '<span class="vc-badge hot">⚡ Trendda</span>'
+    return '<span class="vc-badge ok">✅ Yaxshi</span>'
 
 # Niche suggestions
 NICHES = [
@@ -766,8 +775,9 @@ for k,v in [("authenticated",False),("results",None),
              ("dark_mode",True),("current_topic","Survival")]:
     if k not in st.session_state: st.session_state[k]=v
 
-# Admin login ni query_params orqali saqlaymiz
-if st.query_params.get("admin_auth","") == "ok":
+# Admin login — URL va st.secrets orqali saqlaymiz
+_admin_secret = "v777admin2024"
+if st.query_params.get("au","") == _admin_secret:
     st.session_state.authenticated = True
 
 uid = get_uid()
@@ -795,21 +805,25 @@ with st.sidebar:
 
     # Auth
     if not st.session_state.authenticated:
-        with st.expander("🔐 Admin Кириш"):
-            u_in = st.text_input("Логин", key="login_u")
-            p_in = st.text_input("Пароль", type="password", key="login_p")
-            if st.button("Кириш", key="login_btn"):
+        with st.expander("🔐 Admin Kirish"):
+            u_in = st.text_input("Login", key="login_u")
+            p_in = st.text_input("Parol", type="password", key="login_p")
+            if st.button("Kirish", key="login_btn"):
                 if ADMIN_DB.get(u_in)==p_in:
                     st.session_state.authenticated=True
-                    st.query_params["admin_auth"]="ok"
+                    st.query_params["au"]="v777admin2024"
+                    # API key ham saqlangan bo'lsa saqlab qolamiz
+                    if api_key:
+                        st.query_params["apikey"]=api_key
                     st.rerun()
-                else: st.error("❌ Нотўғри!")
+                else: st.error("❌ Notogri!")
     else:
         col1,col2 = st.columns([2,1])
         col1.success("✅ Admin")
-        if col2.button("Чиқиш"):
+        if col2.button("Chiqish"):
             st.session_state.authenticated=False
-            st.query_params.pop("admin_auth", None)
+            if "au" in st.query_params:
+                del st.query_params["au"]
             st.rerun()
 
     st.divider()
@@ -819,34 +833,51 @@ with st.sidebar:
         if is_subscribed(uid):
             ud=get_user(uid)
             until=datetime.fromisoformat(ud["sub_until"]).strftime("%d.%m.%Y")
-            st.markdown(f"<div class='badge-active'>✅ PRO · {until} гача</div>",
+            st.markdown(f"<div class='badge-active'>✅ PRO · {until} gacha</div>",
                         unsafe_allow_html=True)
         else:
             rem=get_trial(uid)
             if rem>0:
-                st.markdown(f"<div class='badge-trial'>🎁 Синов: {rem}/{FREE_TRIAL_LIMIT}</div>",
+                st.markdown(f"<div class='badge-trial'>🎁 Sinov: {rem}/{FREE_TRIAL_LIMIT}</div>",
                             unsafe_allow_html=True)
             else:
-                st.markdown("<div class='badge-expired'>🔒 Обуна керак</div>",
+                st.markdown("<div class='badge-expired'>🔒 Obuna kerak</div>",
                             unsafe_allow_html=True)
 
     st.divider()
 
     # API Key
     saved_key = st.query_params.get("apikey","")
-    api_key   = st.text_input("🔑 YouTube API Key", value=saved_key,
-                               type="password", placeholder="AIza...")
-    if api_key and api_key!=saved_key:
-        st.query_params["apikey"]=api_key
+    with st.expander("🔑 YouTube API Key" + (" ✅" if saved_key else " ❗"), expanded=not bool(saved_key)):
+        st.markdown("""
+**API Key olish — bosqichma-bosqich:**
+
+1. 🌐 [console.cloud.google.com](https://console.cloud.google.com) ga kiring
+2. ➕ **"New Project"** tugmasini bosing → nom bering → **Create**
+3. Chap menyu → **"APIs & Services"** → **"Library"**
+4. Qidiruv qatoriga **"YouTube Data API v3"** yozing → bosing → **Enable**
+5. **"APIs & Services"** → **"Credentials"** → **"+ Create Credentials"** → **"API Key"**
+6. Yaratilgan kalitni nusxalang ✅
+
+⚠️ *Bepul limit: kuniga 10,000 so'rov*
+        """, unsafe_allow_html=False)
+    api_key = st.text_input("API Key kiriting:", value=saved_key,
+                             type="password", placeholder="AIzaSy...",
+                             label_visibility="collapsed")
+    if api_key and api_key != saved_key:
+        st.query_params["apikey"] = api_key
 
     st.markdown("**🔍 Mavzu / Nisha**")
 
-    # Niche quick select
+    # Niche quick select — har bir niche uchun tugma
     niche_cols = st.columns(3)
-    for i, niche in enumerate(NICHES[:9]):
-        btn_style = "primary" if st.session_state.get("current_topic","") == niche else "secondary"
-        if niche_cols[i%3].button(niche, key=f"nb_{niche}", use_container_width=True,
-                                   type=btn_style if btn_style=="primary" else "secondary"):
+    niche_list = NICHES[:9]
+    for i in range(len(niche_list)):
+        niche = niche_list[i]
+        col_idx = i % 3
+        is_active = st.session_state.get("current_topic","") == niche
+        label = f"✓ {niche}" if is_active else niche
+        if niche_cols[col_idx].button(label, key=f"nch_{i}", use_container_width=True):
             st.session_state["current_topic"] = niche
             st.rerun()
 
@@ -874,36 +905,36 @@ with st.sidebar:
                     st.session_state["current_topic"] = hn
                     st.rerun()
 
-    region_label = st.selectbox("🌍 Бозор:", list(REGIONS.keys()))
+    region_label = st.selectbox("🌍 Bozor:", list(REGIONS.keys()))
     region_code  = REGIONS[region_label]
 
-    days_sel  = st.select_slider("📅 Давр:", options=[1,7,14,30,60,90,180,365],
+    days_sel  = st.select_slider("📅 Davr:", options=[1,7,14,30,60,90,180,365],
                                   value=30, format_func=lambda x: f"{x} kun")
     min_outl  = st.slider("⚡ Min Outlier Score:", 1, 200, 10,
-                           help="Вираллик коэффициенти — видео кўришлари / обуначилар")
+                           help="Viral koeffitsient — video ko'rishlari / obunachilarga nisbat")
     min_views = st.select_slider("👁 Min Ko'rishlar:",
                                   options=[0,1000,10000,50000,100000,500000,1000000],
-                                  value=0, format_func=lambda x: fmt(x) if x>0 else "Ҳаммаси")
-    max_res   = st.select_slider("📦 Натижалар сони:", options=[10,25,50], value=25)
+                                  value=0, format_func=lambda x: fmt(x) if x>0 else "Hammasi")
+    max_res   = st.select_slider("📦 Natijalar soni:", options=[10,25,50], value=25)
 
     can_search = (st.session_state.authenticated or
                   is_subscribed(uid) or get_trial(uid)>0)
-    search_btn = st.button("🚀 ТАҲЛИЛНИ БОШЛАШ", disabled=not can_search,
+    search_btn = st.button("🚀 TAHLILNI BOSHLASH", disabled=not can_search,
                             use_container_width=True)
 
     if not can_search:
         st.markdown("<div style='text-align:center;margin-top:8px;font-size:12px;color:#555577;'>"
-                    "Обуна sotib oling ↓</div>", unsafe_allow_html=True)
+                    "Obuna sotib oling ↓</div>", unsafe_allow_html=True)
 
 # ══════════════════════════════════════════
 # MAIN TABS
 # ══════════════════════════════════════════
 TAB_TREND, TAB_CARDS, TAB_TABLE, TAB_CHART, TAB_HISTORY = st.tabs([
-    "🔥 Тренд Таҳлили",
+    "🔥 Trend Tahlili",
     "🎬 Video Kartochkalar",
-    "📊 Жадвал",
+    "📊 Jadval",
     "📈 Grafiklar",
-    "🕐 Тарих",
+    "🕐 Tarix",
 ])
 
 # ══════════════════════════════════════════
@@ -918,7 +949,7 @@ def show_sub_block(tab_id="main"):
         <h2 style='color:#fff;font-size:24px;margin-bottom:8px;'>Sinov muddati tugadi</h2>
         <p style='color:#888899;font-size:14px;margin-bottom:24px;'>
             Davom etish uchun <b>Pro obuna</b> sotib oling.<br>
-            Тўловдан so'ng Telegram бот активация кодини <b>darhol</b> yuboradi.
+            To'lovdan so'ng Telegram bot aktivatsiya kodini <b>darhol</b> yuboradi.
         </p>
         <div style='font-size:52px;font-weight:900;background:linear-gradient(135deg,#6c63ff,#ff6b6b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:16px 0;'>
             {SUBSCRIPTION_PRICE:,} so'm
@@ -959,9 +990,9 @@ if search_btn:
     topic = st.session_state.get("current_topic", "Survival")
     current_key = st.query_params.get("apikey","") or api_key
     if not current_key:
-        st.error("‼️ YouTube API Key киритилмаган!")
+        st.error("‼️ YouTube API Key kiritilmagan!")
     else:
-        with st.spinner("🔍 YouTube маълумотлари таҳлил қилинмоқда..."):
+        with st.spinner("🔍 YouTube ma'lumotlari tahlil qilinmoqda..."):
             try:
                 yt = googleapiclient.discovery.build("youtube","v3",developerKey=current_key)
                 pub_after = (datetime.utcnow()-timedelta(days=days_sel)).isoformat()+"Z"
@@ -1029,7 +1060,7 @@ if search_btn:
                 st.session_state.last_topic = topic
                 st.session_state.search_done = True
 
-                # Тарих — UTC ни UZ вақтга ўтказиш (+5)
+                # Tarix — UTC ни UZ вақтга ўтказиш (+5)
                 now_uz = datetime.utcnow() + timedelta(hours=5)
                 st.session_state.history.append({
                     "Vaqt":    now_uz.strftime("%H:%M"),
@@ -1047,7 +1078,7 @@ if search_btn:
                     else:     st.toast("⚠️ Oxirgi sinov ishlatildi!")
 
             except Exception as e:
-                st.error(f"⚠️ Хато: {e}")
+                st.error(f"⚠️ Xato: {e}")
 
 # ══════════════════════════════════════════
 # TAB 1: TREND ANALYSIS
@@ -1067,8 +1098,8 @@ with TAB_TREND:
                 YouTube Trend Tahlilchisi
             </h2>
             <p style='color:#555577;font-size:16px;max-width:500px;margin:0 auto 32px;'>
-                Чap панелдан мавзу ва параметрларни танланг,<br>
-                so'ng <b>"Таҳлилни бошлаш"</b> tugmasini bosing.
+                Chap paneldan mavzu va parametrlarni tanlang,<br>
+                so'ng <b>"Tahlilni boshlash"</b> tugmasini bosing.
             </p>
         </div>
         """, unsafe_allow_html=True)
@@ -1087,7 +1118,7 @@ with TAB_TREND:
                 st.rerun()
     else:
         df = pd.DataFrame(st.session_state.results)
-        if df.empty: st.info("Натижа топилмади. Параметрларни ўзгартиринг."); st.stop()
+        if df.empty: st.info("Natija topilmadi. Parametrlarni o'zgartiring."); st.stop()
 
         avg_outl = round(df['outlier'].mean(),1)
         total_views = df['views'].sum()
@@ -1209,14 +1240,14 @@ with TAB_TREND:
                             </div>
                             <div class='vc-stat'>
                                 <span class='vc-stat-val'>{fmt(row['subs'])}</span>
-                                <span class='vc-stat-lbl'>Обуначи</span>
+                                <span class='vc-stat-lbl'>Obunachi</span>
                             </div>
                         </div>
                     </div>
                 </div>
                 <a href='{row['url']}' target='_blank' style='display:block;text-align:center;
                    margin-top:8px;font-size:12px;color:#6c63ff;text-decoration:none;'>
-                   ▶ YouTube да кўриш</a>
+                   ▶ YouTube da ko'rish</a>
                 """, unsafe_allow_html=True)
 
         # ── Channels analysis ──
@@ -1235,7 +1266,7 @@ with TAB_TREND:
             size='Videolar', color='Urtacha_Score',
             hover_name='channel',
             color_continuous_scale=['#2a2a58','#6c63ff','#ff4757'],
-            labels={'Urtacha_Score':'Urtacha Viral Score','Videolar':'Videolar сони'},
+            labels={'Urtacha_Score':'Urtacha Viral Score','Videolar':"Videolar soni"},
             size_max=40,
         )
         fig_ch.update_layout(
@@ -1306,7 +1337,7 @@ with TAB_CARDS:
                        style='display:block;text-align:center;margin:6px 0 14px;
                               font-size:12px;color:#6c63ff;text-decoration:none;
                               padding:6px;background:#1a1a2e;border-radius:8px;'>
-                       ▶ YouTube да кўриш</a>
+                       ▶ YouTube da ko'rish</a>
                     """, unsafe_allow_html=True)
 
 # ══════════════════════════════════════════
@@ -1322,43 +1353,55 @@ with TAB_TABLE:
     else:
         df = pd.DataFrame(st.session_state.results)
         df_show = df.copy()
-        df_show["Ko'rishlar"] = df_show['views'].apply(fmt)
-        df_show["Obunachi"]   = df_show['subs'].apply(fmt)
-        df_show["Layklar"]    = df_show['likes'].apply(fmt)
-        df_show["Izohlar"]    = df_show['comments'].apply(fmt)
-        df_show["Sana"]       = df_show['published'].apply(uzb_date)
-        df_show["Score"]      = df_show['outlier']
-        df_show["Engage%"]    = (
-            (df_show['likes']+df_show['comments'])/df_show['views'].clip(lower=1)*100
-        ).round(2)
+        # Yangi toza DataFrame — faqat kerakli ustunlar
+        table_data = pd.DataFrame({
+            "Rasm":      df["thumbnail"],
+            "Sarlavha":  df["title"],
+            "Kanal":     df["channel"],
+            "Score":     df["outlier"].round(1),
+            "Korishlar": df["views"].apply(fmt),
+            "Obunachi":  df["subs"].apply(fmt),
+            "Layklar":   df["likes"].apply(fmt),
+            "EngagePct": ((df["likes"]+df["comments"])/df["views"].clip(lower=1)*100).round(2),
+            "Sana":      df["published"].apply(uzb_date),
+            "Url":       df["url"],
+        })
 
-        st.markdown(f"<div class='section-title'>📊 Jadval <span>{len(df_show)} ta video</span></div>",
+        st.markdown(f"<div class='section-title'>📊 Jadval <span>{len(table_data)} ta video</span></div>",
                     unsafe_allow_html=True)
 
         st.dataframe(
-            df_show[["thumbnail","title","channel","Score",
-                      "Ko'rishlar","Obunachi","Layklar","Engage%","Sana","url"]],
+            table_data,
             column_config={
-                "thumbnail":   st.column_config.ImageColumn("🖼", width="small"),
-                "title":       st.column_config.TextColumn("Sarlavha", width="large"),
-                "channel":     st.column_config.TextColumn("Kanal"),
-                "Score":       st.column_config.NumberColumn("⚡ Score", format="%.1fx"),
-                "Ko'rishlar":  st.column_config.TextColumn("👁 Ko'rishlar"),
-                "Obunachi":    st.column_config.TextColumn("👥 Obunachi"),
-                "Layklar":     st.column_config.TextColumn("👍 Layklar"),
-                "Engage%":     st.column_config.NumberColumn("💬 Engage%", format="%.2f%%"),
-                "Sana":        st.column_config.TextColumn("📅 Sana"),
-                "url":         st.column_config.LinkColumn("🔗 Havola", display_text="▶ Ko'rish"),
+                "Rasm":      st.column_config.ImageColumn("🖼", width="small"),
+                "Sarlavha":  st.column_config.TextColumn("📝 Sarlavha", width="large"),
+                "Kanal":     st.column_config.TextColumn("📺 Kanal"),
+                "Score":     st.column_config.NumberColumn("⚡ Score", format="%.1fx"),
+                "Korishlar": st.column_config.TextColumn("👁 Ko'rishlar"),
+                "Obunachi":  st.column_config.TextColumn("👥 Obunachi"),
+                "Layklar":   st.column_config.TextColumn("👍 Layklar"),
+                "EngagePct": st.column_config.NumberColumn("💬 Engage%", format="%.2f%%"),
+                "Sana":      st.column_config.TextColumn("📅 Sana"),
+                "Url":       st.column_config.LinkColumn("🔗 Ko'rish", display_text="▶ Ochish"),
             },
             use_container_width=True,
             hide_index=True,
-            height=min(80+len(df_show)*40, 700)
+            height=min(80+len(table_data)*42, 750)
         )
 
         _topic_name = st.session_state.get("last_topic","result")
-        csv = df_show[["title","channel","Score","views","subs","likes","comments","url"]].to_csv(index=False)
+        csv_data = pd.DataFrame({
+            "title":   df["title"],
+            "channel": df["channel"],
+            "score":   df["outlier"],
+            "views":   df["views"],
+            "subs":    df["subs"],
+            "likes":   df["likes"],
+            "comments":df["comments"],
+            "url":     df["url"],
+        }).to_csv(index=False)
         st.download_button(
-            "⬇️ CSV yuklab olish", csv,
+            "⬇️ CSV yuklab olish", csv_data,
             f"viral777_{_topic_name}_{datetime.now().strftime('%Y%m%d')}.csv",
             "text/csv", use_container_width=True
         )
@@ -1469,24 +1512,22 @@ with TAB_HISTORY:
     if st.session_state.history:
         st.markdown("<div class='section-title'>🕐 Qidiruv Tarixi</div>",
                     unsafe_allow_html=True)
-        hist_df = pd.DataFrame(st.session_state.history).iloc[::-1]
-        # Ustun nomlarini lotin harfiga o'tkazish
-        hist_df.columns = [c.replace("Вақт","Vaqt").replace("Сана","Sana")
-                            .replace("Мавзу","Mavzu").replace("Бозор","Bozor")
-                            .replace("Давр","Davr").replace("Топилди","Topildi")
-                            for c in hist_df.columns]
+        # Yangi DataFrame — ustun nomlar allaqachon lotin (history.append da lotin yozilgan)
+        raw_hist = st.session_state.history
+        hist_df = pd.DataFrame(raw_hist).iloc[::-1].reset_index(drop=True)
+        # Agar ustun nomlari kirill bo'lsa, lotin ga o'tkazamiz
+        rename_map = {
+            "Vaqt":"Vaqt","Sana":"Sana","Mavzu":"Mavzu",
+            "Bozor":"Bozor","Davr":"Davr","Topildi":"Topildi"
+        }
+        hist_df = hist_df.rename(columns=rename_map)
+        # Faqat mavjud ustunlarni ko'rsatamiz
+        show_cols = [c for c in ["Vaqt","Sana","Mavzu","Bozor","Davr","Topildi"]
+                     if c in hist_df.columns]
         st.dataframe(
-            hist_df,
+            hist_df[show_cols],
             use_container_width=True,
             hide_index=True,
-            column_config={
-                "Vaqt":    st.column_config.TextColumn("🕐 Vaqt"),
-                "Sana":    st.column_config.TextColumn("📅 Sana"),
-                "Mavzu":   st.column_config.TextColumn("🔍 Mavzu"),
-                "Bozor":   st.column_config.TextColumn("🌍 Bozor"),
-                "Davr":    st.column_config.TextColumn("📆 Davr"),
-                "Topildi": st.column_config.NumberColumn("📊 Topildi"),
-            }
         )
         if st.button("🗑 Tarixni tozalash"):
             st.session_state.history=[]; st.rerun()
