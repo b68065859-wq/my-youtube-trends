@@ -14,6 +14,7 @@ PAYME_MERCHANT    = "your_id"
 CLICK_SERVICE     = "your_id"
 CLICK_MERCHANT    = "your_id"
 TELEGRAM_BOT_LINK = "https://t.me/your_bot"
+APP_URL           = "https://my-youtube-trends-nk9rk2csy8hjj6dvhfbgku.streamlit.app"
 """
 
 import streamlit as st
@@ -61,16 +62,14 @@ st.set_page_config(
     menu_items={"Get Help":None,"Report a bug":None,"About":None}
 )
 
-# Dark/Light mode — butun sahifaga ta'sir qiladi
+# Dark/Light mode
 def apply_theme():
     if not st.session_state.get("dark_mode", True):
         st.markdown("""<style>
-        /* ══ LIGHT MODE — FULL PAGE ══ */
         html, body, .stApp, .main, .block-container,
         [data-testid="stAppViewContainer"],
         [data-testid="stAppViewBlockContainer"] {
-            background-color: #f0f2f8 !important;
-            color: #1a1a2e !important;
+            background-color: #f0f2f8 !important; color: #1a1a2e !important;
         }
         header[data-testid="stHeader"] { background: #f0f2f8 !important; }
         [data-testid="stSidebar"], [data-testid="stSidebar"] > div {
@@ -80,7 +79,6 @@ def apply_theme():
         [data-testid="stSidebar"] * { color: #1a1a2e !important; }
         [data-testid="stSidebar"] input { background: #ffffff !important; color: #1a1a2e !important; border-color: #c5cae9 !important; }
         [data-testid="stSidebar"] [data-baseweb="select"] > div { background: #ffffff !important; color: #1a1a2e !important; border-color: #c5cae9 !important; }
-        /* Main content */
         .stat-card { background: #ffffff !important; border-color: #c5cae9 !important; box-shadow: 0 2px 16px rgba(63,81,181,0.1) !important; }
         .stat-card.purple { border-top: 3px solid #3f51b5 !important; }
         .stat-card.red    { border-top: 3px solid #e53935 !important; }
@@ -89,28 +87,17 @@ def apply_theme():
         .stat-label { color: #7986cb !important; }
         .stat-value { color: #1a1a2e !important; }
         .stat-sub   { color: #9fa8da !important; }
-        .stat-icon  { opacity: 0.06 !important; color: #1a1a2e !important; }
-        .video-card { background: #ffffff !important; border-color: #c5cae9 !important; box-shadow: 0 2px 12px rgba(0,0,0,0.06) !important; }
-        .vc-title   { color: #1a1a2e !important; }
+        .video-card { background: #ffffff !important; border-color: #c5cae9 !important; }
+        .vc-title { color: #1a1a2e !important; }
         .vc-channel { color: #7986cb !important; }
         .vc-stat-val { color: #1a1a2e !important; }
         .vc-stat-lbl { color: #9fa8da !important; }
         .vs-logo { background: linear-gradient(135deg,#3f51b5,#e91e63) !important; -webkit-background-clip:text !important; -webkit-text-fill-color:transparent !important; }
-        .vs-tagline { color: #9fa8da !important; }
         .section-title { color: #1a1a2e !important; }
-        .section-title span { color: #7986cb !important; }
         .viral-score-box { background: #ffffff !important; border-color: #c5cae9 !important; }
-        .vs-score { background: linear-gradient(135deg,#3f51b5,#e91e63) !important; -webkit-background-clip:text !important; -webkit-text-fill-color:transparent !important; }
-        .vs-score-label { color: #7986cb !important; }
-        .vs-score-desc  { color: #9fa8da !important; }
-        .sub-box  { background: #ffffff !important; border-color: #c5cae9 !important; }
-        .act-box  { background: #f5f5ff !important; border-color: #9fa8da !important; }
-        .search-hint { background: #e8eaf6 !important; border-color: #c5cae9 !important; color: #3f51b5 !important; }
-        /* Tabs */
         [data-baseweb="tab-list"] { background: #e8eaf6 !important; border-bottom: 1px solid #c5cae9 !important; }
         [data-baseweb="tab"] { color: #7986cb !important; background: transparent !important; }
         [aria-selected="true"][data-baseweb="tab"] { color: #3f51b5 !important; border-bottom: 2px solid #3f51b5 !important; background: #dde1f5 !important; }
-        /* Inputs */
         input, textarea { background: #ffffff !important; color: #1a1a2e !important; border-color: #c5cae9 !important; }
         [data-baseweb="select"] > div { background: #ffffff !important; color: #1a1a2e !important; border-color: #c5cae9 !important; }
         [data-baseweb="select"] div, [data-baseweb="select"] span, [data-baseweb="select"] p { color: #1a1a2e !important; }
@@ -120,43 +107,28 @@ def apply_theme():
         [data-baseweb="popover"], [data-baseweb="popover"] * { background: #ffffff !important; color: #1a1a2e !important; }
         [data-baseweb="menu"], [data-baseweb="menu"] * { background: #ffffff !important; color: #1a1a2e !important; }
         li[role="option"], li[role="option"] * { background: #ffffff !important; color: #1a1a2e !important; }
-        li[role="option"]:hover { background: #e8eaf6 !important; }
-        /* Buttons */
         .stButton > button { background: linear-gradient(135deg,#3f51b5,#5c6bc0) !important; color: #fff !important; }
-        /* Alerts, dataframe */
         [data-testid="stAlert"] { background: #e8eaf6 !important; color: #1a1a2e !important; border-color: #c5cae9 !important; }
-        [data-testid="stDataFrame"] { background: #ffffff !important; border-radius: 12px !important; }
-        [data-testid="stDataFrame"] * { background-color: #ffffff !important; color: #1a1a2e !important; border-color: #e8eaf6 !important; }
-        [data-testid="stDataFrame"] th,
-        [data-testid="stDataFrame"] [role="columnheader"] { background-color: #e8eaf6 !important; color: #3f51b5 !important; font-weight: 700 !important; }
-        [data-testid="stDataFrame"] td,
-        [data-testid="stDataFrame"] [role="gridcell"] { background-color: #ffffff !important; color: #1a1a2e !important; }
-        [data-testid="stDataFrame"] tr:hover td { background-color: #f0f2f8 !important; }
-        .dvn-scroller { background: #ffffff !important; }
+        [data-testid="stDataFrame"] * { background-color: #ffffff !important; color: #1a1a2e !important; }
+        [data-testid="stDataFrame"] th, [data-testid="stDataFrame"] [role="columnheader"] { background-color: #e8eaf6 !important; color: #3f51b5 !important; }
+        [data-testid="stDataFrame"] td, [data-testid="stDataFrame"] [role="gridcell"] { background-color: #ffffff !important; color: #1a1a2e !important; }
         [data-testid="stMarkdownContainer"] p { color: #3a3a5e !important; }
-        .stCaption { color: #7986cb !important; }
         hr { border-color: #c5cae9 !important; }
-        /* Expander */
         [data-testid="stExpander"] { background: #ffffff !important; border-color: #c5cae9 !important; }
         [data-testid="stExpander"] summary { color: #1a1a2e !important; }
-        [data-testid="stExpander"] p { color: #3a3a5e !important; }
-        /* Niche buttons */
-        .stButton > button[kind="secondary"] { background: #e8eaf6 !important; color: #3f51b5 !important; border: 1px solid #c5cae9 !important; }
         </style>""", unsafe_allow_html=True)
 
 # ══════════════════════════════════════════
-# CSS — ViewStats Dark Pro Style
+# CSS
 # ══════════════════════════════════════════
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-
-/* ── RESET ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; }
 
-/* ── HEADER, MANAGE APP, FOOTER — KUCHLI YASHIRISH ── */
+/* MANAGE APP YASHIRISH */
 #MainMenu { visibility: hidden !important; display: none !important; }
-header[data-testid="stHeader"] { 
+header[data-testid="stHeader"] {
     background: #0a0a0f !important;
     height: 0 !important; min-height: 0 !important;
     padding: 0 !important; overflow: hidden !important;
@@ -166,43 +138,36 @@ header[data-testid="stHeader"] {
 [data-testid="stAppDeployButton"] { display: none !important; }
 [data-testid="manage-app-button"] { display: none !important; }
 [data-testid="stBottom"]          { display: none !important; }
-/* Pastki o'ng burchakdagi har qanday element */
-.stApp > div:last-child > div:last-child { 
-    display: none !important; 
-}
-div[class*="badge"], div[class*="Badge"] { display: none !important; }
-img[alt="Streamlit"], a[href*="streamlit.io"] { display: none !important; }
-button[data-testid="manage-app-button"] { display: none !important; }
-[class*="manage"]         { display: none !important; }
 [class*="viewerBadge"]    { display: none !important; }
 [class*="StatusWidget"]   { display: none !important; }
 [class*="toolbarActions"] { display: none !important; }
-[class^="styles_viewerBadge"] { display: none !important; }
-[title="Manage app"] { display: none !important; }
-#stDecoration        { display: none !important; }
-footer, footer *     { display: none !important; }
-.stApp > header      { display: none !important; }
+[title="Manage app"]      { display: none !important; }
+#stDecoration             { display: none !important; }
+footer, footer *          { display: none !important; }
+.stApp > header           { display: none !important; }
 section[data-testid="stSidebarNav"] { display: none !important; }
+/* Pastki o'ng badge */
+div[class*="badge"], div[class*="Badge"] { display: none !important; }
+img[alt="Streamlit"] { display: none !important; }
 
-/* ── GLOBAL ── */
+/* GLOBAL */
 html, body, .stApp, .main, .block-container {
     background-color: #0a0a0f !important;
     color: #e8e8f0 !important;
     font-family: 'Inter', sans-serif !important;
 }
-.block-container { 
-    padding: 1.5rem 2rem !important; 
+.block-container {
+    padding: 1.5rem 2rem !important;
     max-width: 1400px !important;
     padding-top: 1rem !important;
 }
 
-/* ── SIDEBAR ── */
+/* SIDEBAR */
 [data-testid="stSidebar"] {
     background: linear-gradient(180deg, #0f0f1a 0%, #0a0a12 100%) !important;
     border-right: 1px solid #1e1e2e !important;
 }
 [data-testid="stSidebar"] * { color: #e8e8f0 !important; }
-[data-testid="stSidebar"] .stTextInput input,
 [data-testid="stSidebar"] input {
     background: #1a1a2e !important;
     border: 1px solid #2a2a4a !important;
@@ -215,7 +180,7 @@ html, body, .stApp, .main, .block-container {
     border-radius: 8px !important;
 }
 
-/* ── ALL INPUTS ── */
+/* INPUTS */
 input, textarea, [data-baseweb="input"] input {
     background: #1a1a2e !important;
     color: #ffffff !important;
@@ -223,18 +188,14 @@ input, textarea, [data-baseweb="input"] input {
     border-radius: 8px !important;
 }
 
-/* ── SELECTBOX FULL FIX ── */
+/* SELECTBOX */
 [data-baseweb="select"] { color: #ffffff !important; }
 [data-baseweb="select"] > div {
-    background: #1a1a2e !important;
-    color: #ffffff !important;
-    border: 1px solid #2a2a4a !important;
-    border-radius: 8px !important;
+    background: #1a1a2e !important; color: #ffffff !important;
+    border: 1px solid #2a2a4a !important; border-radius: 8px !important;
 }
-[data-baseweb="select"] div,
-[data-baseweb="select"] span,
-[data-baseweb="select"] p,
-[data-baseweb="select"] input,
+[data-baseweb="select"] div, [data-baseweb="select"] span,
+[data-baseweb="select"] p, [data-baseweb="select"] input,
 [data-baseweb="select"] [class*="placeholder"],
 [data-baseweb="select"] [class*="singleValue"],
 [data-baseweb="select"] [class*="ValueContainer"] { color: #ffffff !important; }
@@ -250,121 +211,85 @@ li[role="option"], li[role="option"] * { color: #ffffff !important; background: 
 li[role="option"]:hover { background: #2a2a4a !important; }
 [data-testid="stSelectbox"] label { color: #e8e8f0 !important; }
 
-/* ── RADIO ── */
+/* RADIO */
 [role="radiogroup"] label, [role="radiogroup"] p,
 div[data-testid="stRadio"] label, div[data-testid="stRadio"] p { color: #e8e8f0 !important; }
 
-/* ── SLIDER ── */
+/* SLIDER */
 [data-testid="stSlider"] p, [data-testid="stSlider"] span,
 [data-testid="stSlider"] label { color: #e8e8f0 !important; }
 
-/* ── TABS ── */
+/* TABS */
 [data-baseweb="tab-list"] {
     background: transparent !important;
     border-bottom: 1px solid #1e1e2e !important;
     gap: 4px !important;
 }
 [data-baseweb="tab"] {
-    color: #666688 !important;
-    background: transparent !important;
+    color: #666688 !important; background: transparent !important;
     border-radius: 8px 8px 0 0 !important;
     padding: 10px 20px !important;
-    font-weight: 600 !important;
-    font-size: 14px !important;
+    font-weight: 600 !important; font-size: 14px !important;
     transition: all 0.2s !important;
 }
 [data-baseweb="tab"]:hover { color: #aaaacc !important; background: #1a1a2e !important; }
 [aria-selected="true"][data-baseweb="tab"] {
-    color: #ffffff !important;
-    background: #1a1a2e !important;
+    color: #ffffff !important; background: #1a1a2e !important;
     border-bottom: 2px solid #6c63ff !important;
 }
 
-/* ── BUTTONS ── */
+/* BUTTONS */
 .stButton > button {
     background: linear-gradient(135deg, #6c63ff 0%, #5a54e8 100%) !important;
-    color: #ffffff !important;
-    border-radius: 10px !important;
-    font-weight: 700 !important;
-    border: none !important;
-    height: 2.8em !important;
-    width: 100% !important;
-    transition: all 0.25s !important;
-    font-size: 14px !important;
-    letter-spacing: 0.3px !important;
+    color: #ffffff !important; border-radius: 10px !important;
+    font-weight: 700 !important; border: none !important;
+    height: 2.8em !important; width: 100% !important;
+    transition: all 0.25s !important; font-size: 14px !important;
 }
 .stButton > button:hover {
     transform: translateY(-1px) !important;
     box-shadow: 0 6px 20px rgba(108,99,255,0.45) !important;
-    background: linear-gradient(135deg, #7c73ff 0%, #6a64f8 100%) !important;
 }
 .stButton > button:disabled { background: #1e1e2e !important; color: #444466 !important; }
 
-/* ── DATAFRAME ── */
+/* DATAFRAME */
 [data-testid="stDataFrame"] { border-radius: 12px !important; overflow: hidden !important; }
-[data-testid="stDataFrame"] * { 
-    background-color: #0f0f1a !important; 
-    color: #e8e8f0 !important;
-    border-color: #1e1e2e !important;
+[data-testid="stDataFrame"] * {
+    background-color: #0f0f1a !important; color: #e8e8f0 !important; border-color: #1e1e2e !important;
 }
 [data-testid="stDataFrame"] th,
-[data-testid="stDataFrame"] [role="columnheader"] { 
-    background-color: #1a1a2e !important; 
-    color: #9c93ff !important; 
-    font-weight: 700 !important;
+[data-testid="stDataFrame"] [role="columnheader"] {
+    background-color: #1a1a2e !important; color: #9c93ff !important; font-weight: 700 !important;
 }
 [data-testid="stDataFrame"] td,
-[data-testid="stDataFrame"] [role="gridcell"] { 
-    background-color: #0f0f1a !important; 
-    color: #e8e8f0 !important;
+[data-testid="stDataFrame"] [role="gridcell"] {
+    background-color: #0f0f1a !important; color: #e8e8f0 !important;
 }
 [data-testid="stDataFrame"] tr:hover td { background-color: #1a1a2e !important; }
-/* iframe ichidagi dataframe */
 [data-testid="stDataFrame"] iframe { background: #0f0f1a !important; }
 .dvn-scroller { background: #0f0f1a !important; }
 
-/* ── ALERTS ── */
+/* ALERTS */
 [data-testid="stAlert"] { background: #1a1a2e !important; border-radius: 10px !important; color: #e8e8f0 !important; border: 1px solid #2a2a4a !important; }
 
-/* ── EXPANDER ── */
+/* EXPANDER */
 [data-testid="stExpander"] { background: #0f0f1a !important; border: 1px solid #1e1e2e !important; border-radius: 12px !important; }
 [data-testid="stExpander"] summary { color: #e8e8f0 !important; }
 [data-testid="stExpander"] p { color: #aaaacc !important; }
 
-/* ── MARKDOWN ── */
+/* MARKDOWN */
 [data-testid="stMarkdownContainer"] p { color: #ccccdd !important; }
 .stCaption { color: #666688 !important; }
-
-/* ── DIVIDER ── */
 hr { border-color: #1e1e2e !important; }
 
-/* ══════════════════════════════════
-   CUSTOM COMPONENTS
-══════════════════════════════════ */
-
-/* Header Logo */
-.vs-header {
-    display: flex; align-items: center; gap: 12px;
-    padding: 4px 0 16px; border-bottom: 1px solid #1e1e2e; margin-bottom: 16px;
-}
-.vs-logo {
-    font-size: 22px; font-weight: 900; letter-spacing: -0.5px;
-    background: linear-gradient(135deg, #6c63ff, #ff6b6b);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-}
+/* CUSTOM COMPONENTS */
+.vs-header { display: flex; align-items: center; gap: 12px; padding: 4px 0 16px; border-bottom: 1px solid #1e1e2e; margin-bottom: 16px; }
+.vs-logo { font-size: 22px; font-weight: 900; background: linear-gradient(135deg, #6c63ff, #ff6b6b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 .vs-tagline { font-size: 11px; color: #555577; font-weight: 500; }
 
-/* Stat Cards */
-.stat-card {
-    background: linear-gradient(135deg, #0f0f1a 0%, #12121f 100%);
-    border: 1px solid #1e1e2e;
-    border-radius: 16px; padding: 20px 24px;
-    transition: all 0.3s; position: relative; overflow: hidden;
-}
+.stat-card { background: linear-gradient(135deg, #0f0f1a 0%, #12121f 100%); border: 1px solid #1e1e2e; border-radius: 16px; padding: 20px 24px; transition: all 0.3s; position: relative; overflow: hidden; }
 .stat-card:hover { border-color: #3a3a5e; transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
-.stat-card::before {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-}
+.stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
 .stat-card.purple::before { background: linear-gradient(90deg, #6c63ff, #9c93ff); }
 .stat-card.red::before    { background: linear-gradient(90deg, #ff4757, #ff6b81); }
 .stat-card.green::before  { background: linear-gradient(90deg, #2ed573, #7bed9f); }
@@ -374,31 +299,7 @@ hr { border-color: #1e1e2e !important; }
 .stat-sub   { font-size: 12px; color: #555577; margin-top: 6px; }
 .stat-icon  { position: absolute; right: 20px; top: 20px; font-size: 28px; opacity: 0.15; }
 
-/* Viral Score */
-.viral-score-box {
-    background: linear-gradient(135deg, #0f0f1a, #12121f);
-    border: 1px solid #2a2a4a;
-    border-radius: 20px; padding: 32px; text-align: center;
-    position: relative; overflow: hidden;
-}
-.viral-score-box::after {
-    content: ''; position: absolute;
-    top: -50%; left: -50%; width: 200%; height: 200%;
-    background: radial-gradient(circle, rgba(108,99,255,0.05) 0%, transparent 70%);
-    pointer-events: none;
-}
-.vs-score { font-size: 72px; font-weight: 900; line-height: 1;
-    background: linear-gradient(135deg, #6c63ff, #ff6b6b);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.vs-score-label { font-size: 13px; font-weight: 700; color: #555577; letter-spacing: 2px; text-transform: uppercase; margin-top: 8px; }
-.vs-score-desc  { font-size: 14px; color: #888899; margin-top: 12px; }
-
-/* Video Card */
-.video-card {
-    background: #0f0f1a; border: 1px solid #1e1e2e;
-    border-radius: 16px; padding: 0; overflow: hidden;
-    transition: all 0.3s; cursor: pointer;
-}
+.video-card { background: #0f0f1a; border: 1px solid #1e1e2e; border-radius: 16px; padding: 0; overflow: hidden; transition: all 0.3s; }
 .video-card:hover { border-color: #3a3a5e; transform: translateY(-3px); box-shadow: 0 12px 40px rgba(0,0,0,0.5); }
 .vc-thumbnail { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
 .vc-body { padding: 14px 16px; }
@@ -407,144 +308,42 @@ hr { border-color: #1e1e2e !important; }
 .vc-stats { display: flex; gap: 12px; }
 .vc-stat { display: flex; flex-direction: column; }
 .vc-stat-val { font-size: 15px; font-weight: 800; color: #ffffff; }
-.vc-stat-lbl { font-size: 10px; color: #444466; text-transform: uppercase; letter-spacing: 0.5px; }
-.vc-badge {
-    display: inline-block;
-    padding: 3px 8px; border-radius: 6px;
-    font-size: 11px; font-weight: 700;
-    margin-bottom: 8px;
-}
+.vc-stat-lbl { font-size: 10px; color: #444466; text-transform: uppercase; }
+.vc-badge { display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; margin-bottom: 8px; }
 .vc-badge.fire { background: rgba(255,71,87,0.15); color: #ff4757; border: 1px solid rgba(255,71,87,0.3); }
 .vc-badge.hot  { background: rgba(255,165,2,0.15);  color: #ffa502; border: 1px solid rgba(255,165,2,0.3); }
 .vc-badge.ok   { background: rgba(46,213,115,0.15); color: #2ed573; border: 1px solid rgba(46,213,115,0.3); }
 
-/* Trend Badge */
-.trend-pill {
-    display: inline-flex; align-items: center; gap: 6px;
-    background: rgba(108,99,255,0.1); border: 1px solid rgba(108,99,255,0.3);
-    border-radius: 20px; padding: 4px 12px;
-    font-size: 12px; font-weight: 600; color: #9c93ff;
-}
+.sub-box { background: linear-gradient(135deg, #0f0f1a, #12121f); border: 1px solid #2a2a4a; border-radius: 20px; padding: 48px 40px; text-align: center; margin: 20px 0; position: relative; overflow: hidden; }
+.sub-box::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #6c63ff, #ff6b6b, #ffa502); }
+.act-box { background: #0f0f1a; border: 1px solid #2a2a4a; border-radius: 16px; padding: 28px; text-align: center; margin: 16px 0; }
+.tg-pay-btn { display: inline-flex; align-items: center; gap: 10px; background: linear-gradient(135deg, #229ED9, #1a8fc2); color: #fff !important; padding: 16px 40px; border-radius: 12px; font-weight: 800; font-size: 16px; text-decoration: none !important; transition: 0.3s; margin: 12px 0; }
 
-/* Subscription Box */
-.sub-box {
-    background: linear-gradient(135deg, #0f0f1a, #12121f);
-    border: 1px solid #2a2a4a; border-radius: 20px;
-    padding: 48px 40px; text-align: center; margin: 20px 0;
-    position: relative; overflow: hidden;
-}
-.sub-box::before {
-    content: ''; position: absolute; top: 0; left: 0; right: 0;
-    height: 3px; background: linear-gradient(90deg, #6c63ff, #ff6b6b, #ffa502);
-}
-.act-box {
-    background: #0f0f1a; border: 1px solid #2a2a4a;
-    border-radius: 16px; padding: 28px; text-align: center; margin: 16px 0;
-}
-.tg-pay-btn {
-    display: inline-flex; align-items: center; gap: 10px;
-    background: linear-gradient(135deg, #229ED9, #1a8fc2);
-    color: #fff !important; padding: 16px 40px; border-radius: 12px;
-    font-weight: 800; font-size: 16px; text-decoration: none !important;
-    transition: 0.3s; margin: 12px 0;
-}
-.tg-pay-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(34,158,217,0.4); }
-
-/* Badges */
 .badge-trial   { background: rgba(255,165,2,0.1);  border: 1px solid rgba(255,165,2,0.3);  border-radius: 10px; padding: 10px 14px; color: #ffa502; font-weight: 700; font-size: 13px; }
 .badge-active  { background: rgba(46,213,115,0.1); border: 1px solid rgba(46,213,115,0.3); border-radius: 10px; padding: 10px 14px; color: #2ed573; font-weight: 700; font-size: 13px; }
 .badge-expired { background: rgba(255,71,87,0.1);  border: 1px solid rgba(255,71,87,0.3);  border-radius: 10px; padding: 10px 14px; color: #ff4757; font-weight: 700; font-size: 13px; }
 
-/* Section titles */
-.section-title {
-    font-size: 18px; font-weight: 800; color: #ffffff;
-    margin: 24px 0 16px; display: flex; align-items: center; gap: 10px;
-}
+.section-title { font-size: 18px; font-weight: 800; color: #ffffff; margin: 24px 0 16px; display: flex; align-items: center; gap: 10px; }
 .section-title span { font-size: 14px; font-weight: 500; color: #555577; }
-
-/* Niche pills */
-.niche-grid { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
-.niche-pill {
-    background: #1a1a2e; border: 1px solid #2a2a4a;
-    border-radius: 20px; padding: 6px 14px;
-    font-size: 13px; color: #aaaacc; cursor: pointer;
-    transition: all 0.2s; font-weight: 500;
-}
-.niche-pill:hover { background: #2a2a4a; color: #fff; border-color: #6c63ff; }
-.niche-pill.active { background: rgba(108,99,255,0.2); border-color: #6c63ff; color: #9c93ff; }
-
-/* Autocomplete hint */
-.search-hint {
-    background: #1a1a2e; border: 1px solid #2a2a4a;
-    border-radius: 8px; padding: 8px 14px; margin-top: 4px;
-    font-size: 12px; color: #666688;
-}
-
-/* ── LIGHT MODE ── */
-.light-mode html, .light-mode body,
-body.light .stApp, body.light .main, body.light .block-container {
-    background-color: #f5f5f5 !important;
-    color: #1a1a2e !important;
-}
-
-/* Theme toggle button */
-.theme-toggle {
-    position: fixed; top: 12px; right: 16px; z-index: 9999;
-    background: #1a1a2e; border: 1px solid #2a2a4a;
-    border-radius: 20px; padding: 6px 14px;
-    font-size: 13px; cursor: pointer; color: #fff;
-    transition: all 0.3s;
-}
-.theme-toggle:hover { background: #2a2a4a; }
-
-/* Light mode overrides */
-.light-bg html, .light-bg body,
-.light-bg .stApp, .light-bg .main, .light-bg .block-container {
-    background-color: #f0f2f8 !important;
-    color: #1a1a2e !important;
-}
-.light-bg [data-testid="stSidebar"] {
-    background: linear-gradient(180deg, #e8eaf6, #dde1f5) !important;
-    border-right: 1px solid #c5cae9 !important;
-}
-.light-bg [data-testid="stSidebar"] * { color: #1a1a2e !important; }
-.light-bg .stat-card {
-    background: #ffffff !important;
-    border-color: #c5cae9 !important;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.08) !important;
-}
-.light-bg .stat-label { color: #7986cb !important; }
-.light-bg .stat-value { color: #1a1a2e !important; }
-.light-bg .video-card { background: #ffffff !important; border-color: #c5cae9 !important; }
-.light-bg .vc-title   { color: #1a1a2e !important; }
-.light-bg .vc-channel { color: #7986cb !important; }
-.light-bg .vc-stat-val { color: #1a1a2e !important; }
-.light-bg .vc-stat-lbl { color: #9fa8da !important; }
-.light-bg .section-title { color: #1a1a2e !important; }
-.light-bg [data-baseweb="tab-list"] { background: #e8eaf6 !important; border-bottom: 1px solid #c5cae9 !important; }
-.light-bg [data-baseweb="tab"] { color: #7986cb !important; }
-.light-bg [aria-selected="true"][data-baseweb="tab"] { color: #3f51b5 !important; border-bottom-color: #3f51b5 !important; }
-.light-bg input, .light-bg textarea { background: #ffffff !important; color: #1a1a2e !important; border-color: #c5cae9 !important; }
-.light-bg [data-baseweb="select"] > div { background: #ffffff !important; color: #1a1a2e !important; border-color: #c5cae9 !important; }
-.light-bg [data-baseweb="select"] span, .light-bg [data-baseweb="select"] div { color: #1a1a2e !important; }
-.light-bg [data-baseweb="option"] { background: #ffffff !important; color: #1a1a2e !important; }
-.light-bg [data-baseweb="option"]:hover { background: #e8eaf6 !important; }
-.light-bg [data-baseweb="popover"], .light-bg [data-baseweb="popover"] * { background: #ffffff !important; color: #1a1a2e !important; }
-.light-bg .niche-pill { background: #e8eaf6 !important; border-color: #c5cae9 !important; color: #3f51b5 !important; }
-.light-bg .search-hint { background: #e8eaf6 !important; border-color: #c5cae9 !important; color: #7986cb !important; }
-.light-bg .vs-logo { background: linear-gradient(135deg, #3f51b5, #e91e63); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.light-bg .vs-tagline { color: #9fa8da !important; }
-.light-bg .viral-score-box { background: #ffffff !important; border-color: #c5cae9 !important; }
-.light-bg [data-testid="stMarkdownContainer"] p { color: #3a3a5e !important; }
-.light-bg hr { border-color: #c5cae9 !important; }
-.light-bg [data-testid="stAlert"] { background: #e8eaf6 !important; color: #1a1a2e !important; }
-.light-bg [data-testid="stDataFrame"] * { background: #ffffff !important; color: #1a1a2e !important; }
-.light-bg [data-testid="stDataFrame"] th { background: #e8eaf6 !important; color: #3f51b5 !important; }
-.light-bg .stButton > button {
-    background: linear-gradient(135deg, #3f51b5, #5c6bc0) !important;
-}
 </style>
 """, unsafe_allow_html=True)
+
+# Manage app JS hide
+st.markdown("""<script>
+(function(){
+  var css='[data-testid="stToolbar"],[data-testid="stStatusWidget"],[data-testid="stBottom"],'
+    +'[data-testid="manage-app-button"],[title="Manage app"],[class*="viewerBadge"],'
+    +'[class*="StatusWidget"],#stDecoration,footer{display:none!important;}';
+  var el=document.createElement('style');
+  el.appendChild(document.createTextNode(css));
+  document.head.appendChild(el);
+  var mo=new MutationObserver(function(){
+    document.querySelectorAll('[data-testid="manage-app-button"],[title="Manage app"]')
+      .forEach(function(n){n.style.cssText='display:none!important;';});
+  });
+  mo.observe(document.body,{childList:true,subtree:true});
+})();
+</script>""", unsafe_allow_html=True)
 
 # ══════════════════════════════════════════
 # DATABASE
@@ -631,7 +430,7 @@ def click_url(oid):
             f"&merchant_id={CLICK_MERCHANT}&amount={SUBSCRIPTION_PRICE}&transaction_param={oid}")
 
 # ══════════════════════════════════════════
-# TELEGRAM BOT — background thread
+# TELEGRAM BOT
 # ══════════════════════════════════════════
 def start_bot():
     if not BOT_AVAILABLE or not BOT_TOKEN: return
@@ -644,8 +443,7 @@ def start_bot():
         mk.add(
             telebot.types.InlineKeyboardButton("💳 Payme orqali to'lash",  url=payme_url(oid)),
             telebot.types.InlineKeyboardButton("⚡ Click orqali to'lash",   url=click_url(oid)),
-            telebot.types.InlineKeyboardButton("✅ To'lov qildim — kod olish",
-                                               callback_data=f"paid:{oid}"),
+            telebot.types.InlineKeyboardButton("✅ To'lov qildim — kod olish", callback_data=f"paid:{oid}"),
         )
         bot.send_message(msg.chat.id,
             f"👋 *Viral 777 Analytics*ga xush kelibsiz!\n\n"
@@ -663,19 +461,15 @@ def start_bot():
         code = gen_code()
         save_code(code, tg_id, oid)
         bot.send_message(tg_id,
-            f"✅ *To'lov qabul qilindi!*\n\n"
-            f"🔑 Aktivatsiya kodingiz:\n\n"
-            f"```\n{code}\n```\n\n"
-            f"📌 Saytga qayting va ushbu kodni kiriting.\n"
-            f"⏰ Kod *24 soat* amal qiladi.",
-            parse_mode="Markdown")
+            f"✅ *To'lov qabul qilindi!*\n\n🔑 Aktivatsiya kodingiz:\n\n"
+            f"```\n{code}\n```\n\n📌 Saytga qayting va ushbu kodni kiriting.\n"
+            f"⏰ Kod *24 soat* amal qiladi.", parse_mode="Markdown")
         if ADMIN_CHAT_ID:
             try:
                 bot.send_message(int(ADMIN_CHAT_ID),
                     f"💰 *Yangi to'lov!*\n👤 {call.from_user.first_name} (`{tg_id}`)\n"
                     f"📋 `{oid}`\n🔑 `{code}`\n💵 {SUBSCRIPTION_PRICE:,} so'm\n"
-                    f"🕐 {datetime.now().strftime('%d.%m.%Y %H:%M')}",
-                    parse_mode="Markdown")
+                    f"🕐 {datetime.now().strftime('%d.%m.%Y %H:%M')}", parse_mode="Markdown")
             except: pass
 
     @bot.message_handler(commands=['admin'])
@@ -684,8 +478,7 @@ def start_bot():
         db=load_db(); u={k:v for k,v in db.items() if k!="activation_codes"}
         c=db.get("activation_codes",{})
         bot.send_message(msg.chat.id,
-            f"📊 *Statistika*\n\n"
-            f"👥 Foydalanuvchi: `{len(u)}`\n"
+            f"📊 *Statistika*\n\n👥 Foydalanuvchi: `{len(u)}`\n"
             f"✅ Faol obuna: `{sum(1 for x in u.values() if x.get('subscribed'))}`\n"
             f"🔑 Ishlatilgan: `{sum(1 for x in c.values() if x.get('used'))}`\n"
             f"⏳ Kutilayotgan: `{sum(1 for x in c.values() if not x.get('used'))}`",
@@ -754,7 +547,6 @@ def viral_badge(score):
     if score>=20:  return '<span class="vc-badge hot">⚡ Trendda</span>'
     return '<span class="vc-badge ok">✅ Yaxshi</span>'
 
-# Niche suggestions
 NICHES = [
     "Survival","Cooking","Finance","Gaming","Science","Travel",
     "Fitness","Tech","Psychology","History","Cars","Football",
@@ -770,10 +562,10 @@ REGIONS = {"🇺🇸 US":"US","🇬🇧 GB":"GB","🇺🇿 UZ":"UZ",
 for k,v in [("authenticated",False),("results",None),
              ("history",[]),("last_topic",""),("search_done",False),
              ("dark_mode",True),("current_topic","Survival"),
-             ("topic_key_ver",0)]:
+             ("topic_key_ver",0),("do_search",False)]:
     if k not in st.session_state: st.session_state[k]=v
 
-# History fayldan tiklash (refresh da ham qolsin)
+# History fayldan tiklash
 if not st.session_state.history:
     try:
         _uid_tmp = st.query_params.get("uid","")
@@ -784,37 +576,37 @@ if not st.session_state.history:
                     st.session_state.history = json.load(hf)
     except: pass
 
-# Admin login — URL va st.secrets orqali saqlaymiz
+# Admin login
 _admin_secret = "v777admin2024"
 if st.query_params.get("au","") == _admin_secret:
     st.session_state.authenticated = True
 
 uid = get_uid()
 
+# Share URL
+try:
+    _base_url = st.secrets["general"].get("APP_URL","https://my-youtube-trends-nk9rk2csy8hjj6dvhfbgku.streamlit.app")
+except:
+    _base_url = "https://my-youtube-trends-nk9rk2csy8hjj6dvhfbgku.streamlit.app"
+current_url = _base_url
+
 # ══════════════════════════════════════════
 # SIDEBAR
 # ══════════════════════════════════════════
 with st.sidebar:
-    # Theme toggle + Share button
     apply_theme()
+
+    # Theme + Share
     t1, t2 = st.columns([1, 1])
     dark_icon = "🌙 Dark" if st.session_state.dark_mode else "☀️ Light"
     if t1.button(dark_icon, key="theme_btn", use_container_width=True):
         st.session_state.dark_mode = not st.session_state.dark_mode
         st.rerun()
-
-    # Ulashish tugmasi
-    # App URL — secrets dan yoki default
-    try:
-        _base_url = st.secrets["general"].get("APP_URL", "https://my-youtube-trends-nk9rk2csy8hjj6dvhfbgku.streamlit.app")
-    except:
-        _base_url = "https://my-youtube-trends-nk9rk2csy8hjj6dvhfbgku.streamlit.app"
-    current_url = f"{_base_url}"  # uid qo'shmaymiz — umumiy link bo'lsin
+    tg_share = f"https://t.me/share/url?url={current_url}&text=🔥%20Viral%20777%20-%20YouTube%20Trend%20Analytics"
     t2.markdown(
-        f"<a href='https://t.me/share/url?url={current_url}&text=🔥%20Viral%20777%20-%20YouTube%20Trend%20Analytics' "
-        f"target='_blank' style='display:block;text-align:center;background:#229ED9;color:#fff;"
-        f"border-radius:10px;padding:6px 4px;font-weight:700;font-size:13px;"
-        f"text-decoration:none;'>📤 Share</a>",
+        f"<a href='{tg_share}' target='_blank' style='display:block;text-align:center;"
+        f"background:#229ED9;color:#fff;border-radius:10px;padding:6px 4px;"
+        f"font-weight:700;font-size:13px;text-decoration:none;'>📤 Share</a>",
         unsafe_allow_html=True
     )
 
@@ -828,27 +620,25 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-    # Auth
-    if not st.session_state.authenticated:
-        with st.expander("🔐 Admin Kirish"):
+    # Auth — faqat ?admin=1 yoki allaqachon kirgan bo'lsa
+    _show_admin = (st.query_params.get("admin","")=="1" or st.session_state.authenticated)
+    if _show_admin and not st.session_state.authenticated:
+        with st.expander("🔐 Admin Kirish", expanded=True):
             u_in = st.text_input("Login", key="login_u")
             p_in = st.text_input("Parol", type="password", key="login_p")
             if st.button("Kirish", key="login_btn"):
                 if ADMIN_DB.get(u_in)==p_in:
                     st.session_state.authenticated=True
                     st.query_params["au"]="v777admin2024"
-                    # API key ham saqlangan bo'lsa saqlab qolamiz
-                    if api_key:
-                        st.query_params["apikey"]=api_key
                     st.rerun()
                 else: st.error("❌ Notogri!")
-    else:
+    elif st.session_state.authenticated:
         col1,col2 = st.columns([2,1])
         col1.success("✅ Admin")
         if col2.button("Chiqish"):
             st.session_state.authenticated=False
-            if "au" in st.query_params:
-                del st.query_params["au"]
+            for k in ["au","admin"]:
+                if k in st.query_params: del st.query_params[k]
             st.rerun()
 
     st.divider()
@@ -875,56 +665,43 @@ with st.sidebar:
     saved_key = st.query_params.get("apikey","")
     with st.expander("🔑 YouTube API Key" + (" ✅" if saved_key else " ❗"), expanded=not bool(saved_key)):
         st.markdown("""
-**API Key olish — bosqichma-bosqich:**
+**API Key olish:**
 
-1. 🌐 [console.cloud.google.com](https://console.cloud.google.com) ga kiring
-2. ➕ **"New Project"** tugmasini bosing → nom bering → **Create**
-3. Chap menyu → **"APIs & Services"** → **"Library"**
-4. Qidiruv qatoriga **"YouTube Data API v3"** yozing → bosing → **Enable**
-5. **"APIs & Services"** → **"Credentials"** → **"+ Create Credentials"** → **"API Key"**
-6. Yaratilgan kalitni nusxalang ✅
+1. 🌐 [console.cloud.google.com](https://console.cloud.google.com)
+2. ➕ New Project → Create
+3. APIs & Services → Library → **YouTube Data API v3** → Enable
+4. Credentials → + Create Credentials → **API Key**
+5. Kalitni nusxalab quyidagi maydonga joylashtiring ✅
 
-⚠️ *Bepul limit: kuniga 10,000 so'rov*
-        """, unsafe_allow_html=False)
-    api_key = st.text_input("API Key kiriting:", value=saved_key,
-                             type="password", placeholder="AIzaSy...",
-                             label_visibility="collapsed")
+⚠️ *Bepul: kuniga 10,000 so'rov*
+        """)
+    api_key = st.text_input("API Key:", value=saved_key, type="password",
+                             placeholder="AIzaSy...", label_visibility="collapsed")
     if api_key and api_key != saved_key:
         st.query_params["apikey"] = api_key
 
     st.markdown("**🔍 Mavzu / Nisha**")
 
-    # Niche quick select — har bir niche uchun tugma
+    # Niche quick select (chap panel)
     niche_cols = st.columns(3)
     niche_list = NICHES[:9]
     for i in range(len(niche_list)):
         niche = niche_list[i]
-        col_idx = i % 3
         is_active = st.session_state.get("current_topic","") == niche
         label = f"✓ {niche}" if is_active else niche
-        if niche_cols[col_idx].button(label, key=f"nch_{i}", use_container_width=True):
+        if niche_cols[i%3].button(label, key=f"nch_{i}", use_container_width=True):
             st.session_state["current_topic"] = niche
-            st.session_state["topic_key_ver"] = st.session_state.get("topic_key_ver",0) + 1
+            st.session_state["topic_key_ver"] = st.session_state.get("topic_key_ver",0)+1
             st.rerun()
 
-    # topic — session_state dan olish
-    if "current_topic" not in st.session_state:
-        st.session_state["current_topic"] = "Survival"
-    if "topic_key_ver" not in st.session_state:
-        st.session_state["topic_key_ver"] = 0
-
-    # Key versiyasi o'zgarganda input qayta render bo'ladi (nisha/hint bosilganda)
     topic = st.text_input(
         "Yoki qidiruv matnini kiriting:",
         value=st.session_state["current_topic"],
         placeholder="Masalan: Survival, Finance...",
         key=f"topic_input_{st.session_state['topic_key_ver']}"
     )
-    # Foydalanuvchi o'zi yozganda session_state ni yangilash
     if topic != st.session_state["current_topic"]:
         st.session_state["current_topic"] = topic
-
-    # Podkazka — olib tashlandi (kerak emas)
 
     region_label = st.selectbox("🌍 Bozor:", list(REGIONS.keys()))
     region_code  = REGIONS[region_label]
@@ -942,7 +719,6 @@ with st.sidebar:
                   is_subscribed(uid) or get_trial(uid)>0)
     search_btn = st.button("🚀 TAHLILNI BOSHLASH", disabled=not can_search,
                             use_container_width=True)
-
     if not can_search:
         st.markdown("<div style='text-align:center;margin-top:8px;font-size:12px;color:#555577;'>"
                     "Obuna sotib oling ↓</div>", unsafe_allow_html=True)
@@ -950,17 +726,16 @@ with st.sidebar:
 # ══════════════════════════════════════════
 # MAIN TABS
 # ══════════════════════════════════════════
-TAB_TREND, TAB_CARDS, TAB_TABLE, TAB_CHART, TAB_HISTORY, TAB_GUIDE = st.tabs([
+TAB_TREND, TAB_CARDS, TAB_TABLE, TAB_CHART, TAB_HISTORY = st.tabs([
     "🔥 Trend Tahlili",
     "🎬 Video Kartochkalar",
     "📊 Jadval",
     "📈 Grafiklar",
     "🕐 Tarix",
-    "📖 Qo'llanma",
 ])
 
 # ══════════════════════════════════════════
-# SUBSCRIPTION BLOCK (shown in all tabs when needed)
+# SUBSCRIPTION BLOCK
 # ══════════════════════════════════════════
 def show_sub_block(tab_id="main"):
     oid = st.session_state.get("pending_order") or gen_code()
@@ -973,18 +748,18 @@ def show_sub_block(tab_id="main"):
             Davom etish uchun <b>Pro obuna</b> sotib oling.<br>
             To'lovdan so'ng Telegram bot aktivatsiya kodini <b>darhol</b> yuboradi.
         </p>
-        <div style='font-size:52px;font-weight:900;background:linear-gradient(135deg,#6c63ff,#ff6b6b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:16px 0;'>
+        <div style='font-size:52px;font-weight:900;background:linear-gradient(135deg,#6c63ff,#ff6b6b);
+                    -webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:16px 0;'>
             {SUBSCRIPTION_PRICE:,} so'm
         </div>
         <p style='color:#444466;font-size:13px;margin-bottom:28px;'>
-            📅 30 kun &nbsp;·&nbsp; ♾️ Cheksiz qidiruv &nbsp;·&nbsp; 📊 Trend tahlili &nbsp;·&nbsp; 📈 Grafiklar
+            📅 30 kun &nbsp;·&nbsp; ♾️ Cheksiz qidiruv &nbsp;·&nbsp; 📊 Trend tahlili
         </p>
         <a href='{TELEGRAM_BOT_LINK}' target='_blank' class='tg-pay-btn'>
             ✈️ Telegram orqali to'lash va kod olish
         </a>
     </div>
     """, unsafe_allow_html=True)
-
     st.markdown("""
     <div class='act-box'>
         <div style='font-size:28px;margin-bottom:8px;'>🔑</div>
@@ -992,11 +767,10 @@ def show_sub_block(tab_id="main"):
         <p style='color:#555577;font-size:13px;'>Telegram botdan olgan 6 ta belgili kod</p>
     </div>
     """, unsafe_allow_html=True)
-
     c1,c2,c3 = st.columns([1,2,1])
     with c2:
-        code = st.text_input("", placeholder="4X9K2M",
-                              max_chars=6, key=f"code_inp_{tab_id}",
+        code = st.text_input("", placeholder="4X9K2M", max_chars=6,
+                              key=f"code_inp_{tab_id}",
                               label_visibility="collapsed").strip().upper()
         if st.button("🔓 KODNI TASDIQLASH", key=f"code_btn_{tab_id}", use_container_width=True):
             if len(code)<6: st.error("❌ Kod 6 ta belgidan iborat!")
@@ -1008,15 +782,12 @@ def show_sub_block(tab_id="main"):
 # ══════════════════════════════════════════
 # SEARCH LOGIC
 # ══════════════════════════════════════════
-# Search trigger
-_do_search = search_btn
-if st.session_state.get("auto_search") == "pending":
-    st.session_state["auto_search"] = "ready"
-    st.rerun()
-elif st.session_state.get("auto_search") == "ready":
-    st.session_state["auto_search"] = False
-    _do_search = True
-if _do_search:
+# do_search — welcome screen nishasi bosilganda True bo'ladi
+_trigger = search_btn or st.session_state.get("do_search", False)
+if st.session_state.get("do_search", False):
+    st.session_state["do_search"] = False
+
+if _trigger:
     topic = st.session_state.get("current_topic", "Survival")
     current_key = st.query_params.get("apikey","") or api_key
     if not current_key:
@@ -1026,7 +797,6 @@ if _do_search:
             try:
                 yt = googleapiclient.discovery.build("youtube","v3",developerKey=current_key)
                 pub_after = (datetime.utcnow()-timedelta(days=days_sel)).isoformat()+"Z"
-
                 res = yt.search().list(
                     q=topic, part="snippet", type="video",
                     maxResults=max_res, order="viewCount",
@@ -1037,17 +807,11 @@ if _do_search:
                 vid_ids = [item['id']['videoId'] for item in res.get('items',[])]
                 ch_ids  = [item['snippet']['channelId'] for item in res.get('items',[])]
 
-                # Batch video stats
-                vi_batch = yt.videos().list(
-                    part="statistics,snippet", id=",".join(vid_ids)
-                ).execute()
+                vi_batch = yt.videos().list(part="statistics,snippet", id=",".join(vid_ids)).execute()
                 vi_map = {i['id']:i for i in vi_batch.get('items',[])}
 
-                # Batch channel stats (deduplicated)
                 unique_chs = list(set(ch_ids))
-                ci_batch = yt.channels().list(
-                    part="statistics,snippet", id=",".join(unique_chs)
-                ).execute()
+                ci_batch = yt.channels().list(part="statistics,snippet", id=",".join(unique_chs)).execute()
                 ci_map = {i['id']:i for i in ci_batch.get('items',[])}
 
                 for item in res.get('items',[]):
@@ -1056,33 +820,24 @@ if _do_search:
                     vi  = vi_map.get(vid, {})
                     ci  = ci_map.get(cid, {})
                     if not vi or not ci: continue
-
-                    views = int(vi.get('statistics',{}).get('viewCount',0))
-                    subs  = int(ci.get('statistics',{}).get('subscriberCount',1))
-                    likes = int(vi.get('statistics',{}).get('likeCount',0))
+                    views    = int(vi.get('statistics',{}).get('viewCount',0))
+                    subs     = int(ci.get('statistics',{}).get('subscriberCount',1))
+                    likes    = int(vi.get('statistics',{}).get('likeCount',0))
                     comments = int(vi.get('statistics',{}).get('commentCount',0))
-                    outl  = round(views/(subs if subs>500 else 500),1)
-
-                    # Thumbnail — high quality
-                    thumbs = vi.get('snippet',{}).get('thumbnails',{})
-                    thumb  = (thumbs.get('maxres') or thumbs.get('high') or
-                              thumbs.get('medium') or thumbs.get('default',{})).get('url','')
-
+                    outl     = round(views/(subs if subs>500 else 500),1)
+                    thumbs   = vi.get('snippet',{}).get('thumbnails',{})
+                    thumb    = (thumbs.get('maxres') or thumbs.get('high') or
+                                thumbs.get('medium') or thumbs.get('default',{})).get('url','')
                     if outl>=min_outl and views>=min_views:
                         results.append({
-                            "id":        vid,
-                            "thumbnail": thumb,
-                            "title":     vi.get('snippet',{}).get('title',''),
-                            "channel":   item['snippet']['channelTitle'],
-                            "channel_id":cid,
-                            "views":     views,
-                            "subs":      subs,
-                            "likes":     likes,
-                            "comments":  comments,
-                            "outlier":   outl,
-                            "published": vi.get('snippet',{}).get('publishedAt',''),
-                            "url":       f"https://www.youtube.com/watch?v={vid}",
-                            "ch_url":    f"https://www.youtube.com/channel/{cid}",
+                            "id":vid, "thumbnail":thumb,
+                            "title":vi.get('snippet',{}).get('title',''),
+                            "channel":item['snippet']['channelTitle'],
+                            "channel_id":cid, "views":views, "subs":subs,
+                            "likes":likes, "comments":comments, "outlier":outl,
+                            "published":vi.get('snippet',{}).get('publishedAt',''),
+                            "url":f"https://www.youtube.com/watch?v={vid}",
+                            "ch_url":f"https://www.youtube.com/channel/{cid}",
                         })
 
                 results.sort(key=lambda x: x['outlier'], reverse=True)
@@ -1090,28 +845,21 @@ if _do_search:
                 st.session_state.last_topic = topic
                 st.session_state.search_done = True
 
-                # Tarix — UTC ни UZ вақтга ўтказиш (+5)
                 now_uz = datetime.utcnow() + timedelta(hours=5)
                 new_entry = {
-                    "Vaqt":    now_uz.strftime("%H:%M"),
-                    "Sana":    now_uz.strftime("%d.%m"),
-                    "Mavzu":   topic,
-                    "Bozor":   region_label,
-                    "Davr":    f"{days_sel} kun",
-                    "Topildi": len(results),
+                    "Vaqt": now_uz.strftime("%H:%M"), "Sana": now_uz.strftime("%d.%m"),
+                    "Mavzu": topic, "Bozor": region_label,
+                    "Davr": f"{days_sel} kun", "Topildi": len(results),
                 }
                 st.session_state.history.append(new_entry)
-                # Faylga saqlash — refresh da ham saqlansin
                 try:
                     hist_file = f"/tmp/v777_hist_{uid[:12]}.json"
                     existing = []
                     if os.path.exists(hist_file):
-                        with open(hist_file) as hf:
-                            existing = json.load(hf)
+                        with open(hist_file) as hf: existing = json.load(hf)
                     existing.append(new_entry)
-                    existing = existing[-50:]  # oxirgi 50 ta
-                    with open(hist_file, "w") as hf:
-                        json.dump(existing, hf)
+                    existing = existing[-50:]
+                    with open(hist_file, "w") as hf: json.dump(existing, hf)
                 except: pass
 
                 if not st.session_state.authenticated and not is_subscribed(uid):
@@ -1124,7 +872,7 @@ if _do_search:
                 st.error(f"⚠️ Xato: {e}")
 
 # ══════════════════════════════════════════
-# TAB 1: TREND ANALYSIS
+# TAB 1: TREND
 # ══════════════════════════════════════════
 with TAB_TREND:
     need_sub = (not st.session_state.authenticated and
@@ -1135,21 +883,20 @@ with TAB_TREND:
     elif not st.session_state.results:
         # Welcome screen
         st.markdown("""
-        <div style='text-align:center;padding:60px 20px 32px;'>
-            <div style='font-size:72px;margin-bottom:20px;'>🔥</div>
-            <h2 style='color:#ffffff;font-size:32px;font-weight:900;margin-bottom:16px;
-                       background:linear-gradient(135deg,#9c93ff,#ff6b6b);
-                       -webkit-background-clip:text;-webkit-text-fill-color:transparent;'>
+        <div style='text-align:center;padding:60px 20px;'>
+            <div style='font-size:64px;margin-bottom:16px;'>🔥</div>
+            <h2 style='color:#fff;font-size:28px;margin-bottom:12px;'>
                 YouTube Trend Tahlilchisi
             </h2>
-            <p style='color:#555577;font-size:16px;max-width:480px;margin:0 auto 0;line-height:1.7;'>
-                Quyidagi nishalardan birini tanlang yoki<br>
-                chap paneldan o'z mavzuingizni kiriting.
+            <p style='color:#555577;font-size:16px;max-width:500px;margin:0 auto 32px;'>
+                Chap paneldan mavzu va parametrlarni tanlang,<br>
+                so'ng <b>"Tahlilni boshlash"</b> tugmasini bosing.
             </p>
         </div>
         """, unsafe_allow_html=True)
 
-        # 12 ta nisha tugmasi — bosilganda chap input ga tushadi va qidiruv boshlanadi
+        # ═══ 12 TA NISHA TUGMASI ═══
+        # Bosilganda: chap inputga tushadi + qidiruv boshlanadi
         st.markdown("<div class='section-title'>⚡ Tez Qidiruv — Mashhur Nishalar</div>",
                     unsafe_allow_html=True)
         niche_emojis = {
@@ -1159,192 +906,146 @@ with TAB_TREND:
         }
         nc = st.columns(6)
         for i, n in enumerate(NICHES[:12]):
-            if nc[i%6].button(
-                f"{niche_emojis.get(n,'🔥')} {n}",
-                key=f"qn_{n}",
-                use_container_width=True
-            ):
-                # Chap panel input ga yozish + qidiruv boshlash
+            if nc[i%6].button(f"{niche_emojis.get(n,'🔥')} {n}", key=f"qn_{n}",
+                               use_container_width=True):
+                # 1. Chap paneldagi inputga yozish
                 st.session_state["current_topic"] = n
-                st.session_state["topic_key_ver"] = st.session_state.get("topic_key_ver",0) + 1
-                st.session_state["auto_search"] = "pending"
+                st.session_state["topic_key_ver"] = st.session_state.get("topic_key_ver",0)+1
+                # 2. Qidiruvni trigger qilish
+                st.session_state["do_search"] = True
                 st.rerun()
     else:
         df = pd.DataFrame(st.session_state.results)
-        if df.empty: st.info("Natija topilmadi. Parametrlarni o'zgartiring."); st.stop()
+        if df.empty:
+            st.info("Natija topilmadi. Parametrlarni o'zgartiring.")
+        else:
+            avg_outl    = round(df['outlier'].mean(),1)
+            total_views = df['views'].sum()
+            max_outl    = df['outlier'].max()
+            top_channel = df.iloc[0]['channel']
 
-        avg_outl = round(df['outlier'].mean(),1)
-        total_views = df['views'].sum()
-        max_outl    = df['outlier'].max()
-        top_channel = df.iloc[0]['channel']
+            share_col, title_col = st.columns([1, 5])
+            tg_url = f"https://t.me/share/url?url={current_url}&text=🔥%20{st.session_state.last_topic}%20viral%20tahlil!"
+            tw_url = f"https://twitter.com/intent/tweet?text=🔥%20{st.session_state.last_topic}%20viral%20score:%20{avg_outl}x%0A{current_url}"
+            share_col.markdown(
+                f"<div style='display:flex;gap:6px;margin-top:4px;'>"
+                f"<a href='{tg_url}' target='_blank' style='background:#229ED9;color:#fff;"
+                f"padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;'>✈️ TG</a>"
+                f"<a href='{tw_url}' target='_blank' style='background:#1DA1F2;color:#fff;"
+                f"padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;'>🐦 X</a>"
+                f"</div>", unsafe_allow_html=True)
+            title_col.markdown(
+                f"<div class='section-title'>📊 <b>{st.session_state.last_topic}</b> Nishasi — Umumiy Tahlil "
+                f"<span>({len(df)} ta viral video topildi)</span></div>",
+                unsafe_allow_html=True)
 
-        # ── Top KPI ──
-        # Share row
-        share_col, title_col = st.columns([1, 5])
-        share_url = current_url
-        tg_url  = f"https://t.me/share/url?url={share_url}&text=🔥%20{topic}%20nishasi%20bo'yicha%20viral%20tahlil!"
-        tw_url  = f"https://twitter.com/intent/tweet?text=🔥%20{topic}%20viral%20score:%20{avg_outl}x%0A{share_url}"
-        share_col.markdown(
-            f"<div style='display:flex;gap:6px;margin-top:4px;'>"
-            f"<a href='{tg_url}' target='_blank' style='background:#229ED9;color:#fff;padding:6px 12px;"
-            f"border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;'>✈️ TG</a>"
-            f"<a href='{tw_url}' target='_blank' style='background:#1DA1F2;color:#fff;padding:6px 12px;"
-            f"border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;'>🐦 X</a>"
-            f"</div>",
-            unsafe_allow_html=True
-        )
-        title_col.markdown(f"<div class='section-title'>📊 <b>{topic}</b> Nishasi — Umumiy Tahlil "
-                    f"<span>({len(df)} ta viral video topildi)</span></div>",
-                    unsafe_allow_html=True)
+            k1,k2,k3,k4 = st.columns(4)
+            k1.markdown(f"""<div class='stat-card purple'>
+                <div class='stat-icon'>⚡</div>
+                <div class='stat-label'>O'RTACHA VIRAL SCORE</div>
+                <div class='stat-value'>{avg_outl}x</div>
+                <div class='stat-sub'>Obunachilarga nisbatan</div>
+            </div>""", unsafe_allow_html=True)
+            k2.markdown(f"""<div class='stat-card red'>
+                <div class='stat-icon'>👁</div>
+                <div class='stat-label'>JAMI KO'RISHLAR</div>
+                <div class='stat-value'>{fmt(total_views)}</div>
+                <div class='stat-sub'>{days_sel} kunlik natija</div>
+            </div>""", unsafe_allow_html=True)
+            k3.markdown(f"""<div class='stat-card gold'>
+                <div class='stat-icon'>🔥</div>
+                <div class='stat-label'>ENG YUQORI SCORE</div>
+                <div class='stat-value'>{max_outl}x</div>
+                <div class='stat-sub'>Mega viral</div>
+            </div>""", unsafe_allow_html=True)
+            k4.markdown(f"""<div class='stat-card green'>
+                <div class='stat-icon'>📺</div>
+                <div class='stat-label'>TOP KANAL</div>
+                <div class='stat-value' style='font-size:16px;'>{top_channel[:16]}...</div>
+                <div class='stat-sub'>Eng viral kanal</div>
+            </div>""", unsafe_allow_html=True)
 
-        k1,k2,k3,k4 = st.columns(4)
-        k1.markdown(f"""<div class='stat-card purple'>
-            <div class='stat-icon'>⚡</div>
-            <div class='stat-label'>O'RTACHA VIRAL SCORE</div>
-            <div class='stat-value'>{avg_outl}x</div>
-            <div class='stat-sub'>Obunachilarga nisbatan</div>
-        </div>""", unsafe_allow_html=True)
+            st.markdown("<br>", unsafe_allow_html=True)
 
-        k2.markdown(f"""<div class='stat-card red'>
-            <div class='stat-icon'>👁</div>
-            <div class='stat-label'>Jami Ko'rishlar</div>
-            <div class='stat-value'>{fmt(total_views)}</div>
-            <div class='stat-sub'>{days_sel} kunlik natija</div>
-        </div>""", unsafe_allow_html=True)
+            col_gauge, col_bar = st.columns([1,2])
+            with col_gauge:
+                fig_gauge = go.Figure(go.Indicator(
+                    mode="gauge+number", value=avg_outl,
+                    title={'text':"Nisha Kuch Koeffitsienti",'font':{'color':'#aaaacc','size':12}},
+                    number={'font':{'color':'#ffffff','size':40},'suffix':'x'},
+                    gauge={
+                        'axis':{'range':[0,max(200,avg_outl*1.5)],'tickcolor':'#333355','tickfont':{'color':'#666688'}},
+                        'bar':{'color':'#6c63ff','thickness':0.3},
+                        'bgcolor':'#0f0f1a','bordercolor':'#1e1e2e',
+                        'steps':[
+                            {'range':[0,10],'color':'#1a1a2e'},{'range':[10,50],'color':'#1e1e38'},
+                            {'range':[50,100],'color':'#242448'},{'range':[100,max(200,avg_outl*1.5)],'color':'#2a2a58'},
+                        ],
+                        'threshold':{'line':{'color':'#ff4757','width':3},'value':50}
+                    }
+                ))
+                fig_gauge.update_layout(paper_bgcolor='rgba(0,0,0,0)',plot_bgcolor='rgba(0,0,0,0)',
+                    height=260,margin=dict(l=20,r=20,t=40,b=10),font=dict(family='Inter'))
+                st.plotly_chart(fig_gauge, use_container_width=True)
 
-        k3.markdown(f"""<div class='stat-card gold'>
-            <div class='stat-icon'>🔥</div>
-            <div class='stat-label'>ENG YUQORI SCORE</div>
-            <div class='stat-value'>{max_outl}x</div>
-            <div class='stat-sub'>Mega viral</div>
-        </div>""", unsafe_allow_html=True)
+            with col_bar:
+                top10 = df.nlargest(10,'outlier')[['title','outlier','channel']].copy()
+                top10['short_title'] = top10['title'].str[:35]+"..."
+                fig_bar = px.bar(top10,x='outlier',y='short_title',orientation='h',color='outlier',
+                    color_continuous_scale=['#2a2a58','#6c63ff','#ff4757'],
+                    labels={'outlier':'Viral Score','short_title':''})
+                fig_bar.update_layout(paper_bgcolor='rgba(0,0,0,0)',plot_bgcolor='rgba(0,0,0,0)',
+                    height=260,margin=dict(l=0,r=20,t=20,b=10),
+                    font=dict(color='#aaaacc',family='Inter',size=11),
+                    xaxis=dict(gridcolor='#1e1e2e',color='#666688'),
+                    yaxis=dict(gridcolor='#1e1e2e',color='#ccccdd'),
+                    coloraxis_showscale=False)
+                fig_bar.update_traces(marker_line_width=0)
+                st.plotly_chart(fig_bar, use_container_width=True)
 
-        k4.markdown(f"""<div class='stat-card green'>
-            <div class='stat-icon'>📺</div>
-            <div class='stat-label'>TOP KANAL</div>
-            <div class='stat-value' style='font-size:16px;'>{top_channel[:16]}...</div>
-            <div class='stat-sub'>Eng viral kanal</div>
-        </div>""", unsafe_allow_html=True)
-
-        st.markdown("<br>", unsafe_allow_html=True)
-
-        # ── Viral Score Gauge ──
-        col_gauge, col_bar = st.columns([1,2])
-
-        with col_gauge:
-            fig_gauge = go.Figure(go.Indicator(
-                mode="gauge+number",
-                value=avg_outl,
-                title={'text': "Nisha Kuch Koeffitsienti", 'font':{'color':'#aaaacc','size':12}},
-                number={'font':{'color':'#ffffff','size':40},'suffix':'x'},
-                gauge={
-                    'axis':{'range':[0, max(200, avg_outl*1.5)],
-                            'tickcolor':'#333355','tickfont':{'color':'#666688'}},
-                    'bar':{'color':'#6c63ff','thickness':0.3},
-                    'bgcolor':'#0f0f1a',
-                    'bordercolor':'#1e1e2e',
-                    'steps':[
-                        {'range':[0,10],   'color':'#1a1a2e'},
-                        {'range':[10,50],  'color':'#1e1e38'},
-                        {'range':[50,100], 'color':'#242448'},
-                        {'range':[100,max(200,avg_outl*1.5)], 'color':'#2a2a58'},
-                    ],
-                    'threshold':{'line':{'color':'#ff4757','width':3},'value':50}
-                }
-            ))
-            fig_gauge.update_layout(
-                paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-                height=260, margin=dict(l=20,r=20,t=40,b=10),
-                font=dict(family='Inter')
-            )
-            st.plotly_chart(fig_gauge, use_container_width=True)
-
-        with col_bar:
-            # Top 10 by outlier
-            top10 = df.nlargest(10,'outlier')[['title','outlier','channel']]
-            top10['short_title'] = top10['title'].str[:35]+"..."
-            fig_bar = px.bar(
-                top10, x='outlier', y='short_title', orientation='h',
-                color='outlier',
-                color_continuous_scale=['#2a2a58','#6c63ff','#ff4757'],
-                labels={'outlier':'Viral Score','short_title':''},
-            )
-            fig_bar.update_layout(
-                paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-                height=260, margin=dict(l=0,r=20,t=20,b=10),
-                font=dict(color='#aaaacc', family='Inter', size=11),
-                xaxis=dict(gridcolor='#1e1e2e', color='#666688'),
-                yaxis=dict(gridcolor='#1e1e2e', color='#ccccdd'),
-                coloraxis_showscale=False,
-            )
-            fig_bar.update_traces(marker_line_width=0)
-            st.plotly_chart(fig_bar, use_container_width=True)
-
-        # ── Top 3 Highlight ──
-        st.markdown("<div class='section-title'>🏆 Eng Viral Videolar</div>",
-                    unsafe_allow_html=True)
-        top3 = df.head(3)
-        cols = st.columns(3)
-        for i,(_, row) in enumerate(top3.iterrows()):
-            with cols[i]:
-                badge_html = viral_badge(row['outlier'])
-                st.markdown(f"""
-                <div class='video-card'>
-                    <img class='vc-thumbnail' src='{row['thumbnail']}' 
-                         onerror="this.src='https://via.placeholder.com/320x180/1a1a2e/6c63ff?text=No+Image'">
-                    <div class='vc-body'>
-                        {badge_html}
-                        <div class='vc-title'>{row['title']}</div>
-                        <div class='vc-channel'>📺 {row['channel']} · {uzb_date(row['published'])}</div>
-                        <div class='vc-stats'>
-                            <div class='vc-stat'>
-                                <span class='vc-stat-val'>{row['outlier']}x</span>
-                                <span class='vc-stat-lbl'>Score</span>
-                            </div>
-                            <div class='vc-stat'>
-                                <span class='vc-stat-val'>{fmt(row['views'])}</span>
-                                <span class='vc-stat-lbl'>Ko'rishlar</span>
-                            </div>
-                            <div class='vc-stat'>
-                                <span class='vc-stat-val'>{fmt(row['subs'])}</span>
-                                <span class='vc-stat-lbl'>Obunachi</span>
+            st.markdown("<div class='section-title'>🏆 Eng Viral Videolar</div>", unsafe_allow_html=True)
+            top3 = df.head(3)
+            cols = st.columns(3)
+            for i,(_, row) in enumerate(top3.iterrows()):
+                with cols[i]:
+                    badge_html = viral_badge(row['outlier'])
+                    st.markdown(f"""
+                    <div class='video-card'>
+                        <img class='vc-thumbnail' src='{row['thumbnail']}'
+                             onerror="this.src='https://via.placeholder.com/320x180/1a1a2e/6c63ff?text=No+Image'">
+                        <div class='vc-body'>
+                            {badge_html}
+                            <div class='vc-title'>{row['title']}</div>
+                            <div class='vc-channel'>📺 {row['channel']} · {uzb_date(row['published'])}</div>
+                            <div class='vc-stats'>
+                                <div class='vc-stat'><span class='vc-stat-val'>{row['outlier']}x</span><span class='vc-stat-lbl'>Score</span></div>
+                                <div class='vc-stat'><span class='vc-stat-val'>{fmt(row['views'])}</span><span class='vc-stat-lbl'>Ko'rishlar</span></div>
+                                <div class='vc-stat'><span class='vc-stat-val'>{fmt(row['subs'])}</span><span class='vc-stat-lbl'>Obunachi</span></div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <a href='{row['url']}' target='_blank' style='display:block;text-align:center;
-                   margin-top:8px;font-size:12px;color:#6c63ff;text-decoration:none;'>
-                   ▶ YouTube da ko'rish</a>
-                """, unsafe_allow_html=True)
+                    <a href='{row['url']}' target='_blank' style='display:block;text-align:center;
+                       margin-top:8px;font-size:12px;color:#6c63ff;text-decoration:none;'>
+                       ▶ YouTube da ko'rish</a>
+                    """, unsafe_allow_html=True)
 
-        # ── Channels analysis ──
-        st.markdown("<div class='section-title'>📺 Eng Faol Kanallar</div>",
-                    unsafe_allow_html=True)
-        ch_stats = df.groupby('channel').agg(
-            Videolar=('id','count'),
-            Urtacha_Score=('outlier','mean'),
-            Jami_Korishlar=('views','sum')
-        ).round(1).sort_values('Urtacha_Score',ascending=False).head(10)
-        ch_stats['Jami_Korishlar'] = ch_stats['Jami_Korishlar'].apply(fmt)
-
-        fig_ch = px.scatter(
-            ch_stats.reset_index(),
-            x='Videolar', y='Urtacha_Score',
-            size='Videolar', color='Urtacha_Score',
-            hover_name='channel',
-            color_continuous_scale=['#2a2a58','#6c63ff','#ff4757'],
-            labels={'Urtacha_Score':'Urtacha Viral Score','Videolar':"Videolar soni"},
-            size_max=40,
-        )
-        fig_ch.update_layout(
-            paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-            height=300, margin=dict(l=0,r=0,t=10,b=0),
-            font=dict(color='#aaaacc',family='Inter'),
-            xaxis=dict(gridcolor='#1e1e2e',color='#666688'),
-            yaxis=dict(gridcolor='#1e1e2e',color='#666688'),
-            coloraxis_showscale=False,
-        )
-        st.plotly_chart(fig_ch, use_container_width=True)
+            st.markdown("<div class='section-title'>📺 Eng Faol Kanallar</div>", unsafe_allow_html=True)
+            ch_stats = df.groupby('channel').agg(
+                Videolar=('id','count'),
+                Urtacha_Score=('outlier','mean'),
+                Jami_Korishlar=('views','sum')
+            ).round(1).sort_values('Urtacha_Score',ascending=False).head(10)
+            ch_stats['Jami_Korishlar'] = ch_stats['Jami_Korishlar'].apply(fmt)
+            fig_ch = px.scatter(ch_stats.reset_index(),x='Videolar',y='Urtacha_Score',
+                size='Videolar',color='Urtacha_Score',hover_name='channel',
+                color_continuous_scale=['#2a2a58','#6c63ff','#ff4757'],
+                labels={'Urtacha_Score':"O'rtacha Viral Score",'Videolar':"Videolar soni"},
+                size_max=40)
+            fig_ch.update_layout(paper_bgcolor='rgba(0,0,0,0)',plot_bgcolor='rgba(0,0,0,0)',
+                height=300,margin=dict(l=0,r=0,t=10,b=0),font=dict(color='#aaaacc',family='Inter'),
+                xaxis=dict(gridcolor='#1e1e2e',color='#666688'),
+                yaxis=dict(gridcolor='#1e1e2e',color='#666688'),coloraxis_showscale=False)
+            st.plotly_chart(fig_ch, use_container_width=True)
 
 # ══════════════════════════════════════════
 # TAB 2: VIDEO CARDS
@@ -1358,17 +1059,13 @@ with TAB_CARDS:
         st.info("🔍 Avval chap paneldan qidiruv boshlang.")
     else:
         df = pd.DataFrame(st.session_state.results)
-        # Filter controls
         fc1,fc2,fc3 = st.columns(3)
         sort_by  = fc1.selectbox("Saralash:", ["Viral Score","Ko'rishlar","Layklar"], key="sort_c")
         min_s    = fc2.slider("Min Score:", 0, int(df['outlier'].max()+1), 0, key="min_s")
         cols_cnt = fc3.select_slider("Ustunlar:", [2,3,4], value=3, key="cols_c")
-
         sort_map = {"Viral Score":"outlier","Ko'rishlar":"views","Layklar":"likes"}
         filtered = df[df['outlier']>=min_s].sort_values(sort_map[sort_by],ascending=False)
-
         st.caption(f"Ko'rsatilmoqda: {len(filtered)} ta video")
-
         rows = [filtered.iloc[i:i+cols_cnt] for i in range(0,len(filtered),cols_cnt)]
         for row_df in rows:
             cols = st.columns(cols_cnt)
@@ -1385,18 +1082,9 @@ with TAB_CARDS:
                             <div class='vc-title'>{row['title']}</div>
                             <div class='vc-channel'>📺 {row['channel']} · {uzb_date(row['published'])}</div>
                             <div class='vc-stats'>
-                                <div class='vc-stat'>
-                                    <span class='vc-stat-val'>{row['outlier']}x</span>
-                                    <span class='vc-stat-lbl'>Score</span>
-                                </div>
-                                <div class='vc-stat'>
-                                    <span class='vc-stat-val'>{fmt(row['views'])}</span>
-                                    <span class='vc-stat-lbl'>Ko'rishlar</span>
-                                </div>
-                                <div class='vc-stat'>
-                                    <span class='vc-stat-val'>{engage}%</span>
-                                    <span class='vc-stat-lbl'>Engage</span>
-                                </div>
+                                <div class='vc-stat'><span class='vc-stat-val'>{row['outlier']}x</span><span class='vc-stat-lbl'>Score</span></div>
+                                <div class='vc-stat'><span class='vc-stat-val'>{fmt(row['views'])}</span><span class='vc-stat-lbl'>Ko'rishlar</span></div>
+                                <div class='vc-stat'><span class='vc-stat-val'>{engage}%</span><span class='vc-stat-lbl'>Engage</span></div>
                             </div>
                         </div>
                     </div>
@@ -1419,11 +1107,8 @@ with TAB_TABLE:
         st.info("🔍 Avval chap paneldan qidiruv boshlang.")
     else:
         df = pd.DataFrame(st.session_state.results)
-
         st.markdown(f"<div class='section-title'>📊 Jadval <span>{len(df)} ta video</span></div>",
                     unsafe_allow_html=True)
-
-        # HTML jadval — har doim ko'rinadi, dark/light modeda ham
         rows_html = []
         for _, row in df.iterrows():
             engage  = round((row["likes"]+row["comments"])/max(row["views"],1)*100, 2)
@@ -1433,18 +1118,15 @@ with TAB_TABLE:
             title   = html_mod.escape(str(row["title"])[:70])
             channel = html_mod.escape(str(row["channel"])[:22])
             sana    = html_mod.escape(uzb_date(str(row["published"])))
-            if score >= 100:   sc_color = "#ff4757"
-            elif score >= 50:  sc_color = "#ffa502"
-            elif score >= 20:  sc_color = "#6c63ff"
-            else:              sc_color = "#2ed573"
+            if score>=100:   sc_color="#ff4757"
+            elif score>=50:  sc_color="#ffa502"
+            elif score>=20:  sc_color="#6c63ff"
+            else:            sc_color="#2ed573"
             rows_html.append(
                 f"<tr>"
-                f"<td style='padding:8px;'><img src='{thumb}' "
-                f"style='width:88px;height:50px;object-fit:cover;border-radius:6px;'></td>"
-                f"<td style='padding:8px 10px;max-width:280px;'>"
-                f"<a href='{url}' target='_blank' "
-                f"style='color:#9c93ff;text-decoration:none;font-weight:600;font-size:13px;"
-                f"line-height:1.4;'>{title}…</a></td>"
+                f"<td style='padding:8px;'><img src='{thumb}' style='width:88px;height:50px;object-fit:cover;border-radius:6px;'></td>"
+                f"<td style='padding:8px 10px;max-width:280px;'><a href='{url}' target='_blank' "
+                f"style='color:#9c93ff;text-decoration:none;font-weight:600;font-size:13px;line-height:1.4;'>{title}…</a></td>"
                 f"<td style='padding:8px 10px;color:#aaaacc;font-size:12px;'>{channel}</td>"
                 f"<td style='padding:8px 10px;color:{sc_color};font-weight:800;font-size:15px;'>{score}x</td>"
                 f"<td style='padding:8px 10px;color:#e8e8f0;font-weight:600;'>{fmt(row['views'])}</td>"
@@ -1454,44 +1136,28 @@ with TAB_TABLE:
                 f"<td style='padding:8px 10px;color:#555577;font-size:12px;'>{sana}</td>"
                 f"</tr>"
             )
-
-        th_style = "padding:12px 10px;color:#9c93ff;font-size:11px;text-transform:uppercase;letter-spacing:1px;text-align:left;border-bottom:2px solid #2a2a4a;white-space:nowrap;"
+        th = "padding:12px 10px;color:#9c93ff;font-size:11px;text-transform:uppercase;letter-spacing:1px;text-align:left;border-bottom:2px solid #2a2a4a;white-space:nowrap;"
         table_html = (
             "<div style='overflow-x:auto;border-radius:14px;border:1px solid #1e1e2e;margin-top:12px;'>"
             "<table style='width:100%;border-collapse:collapse;background:#0f0f1a;font-family:Inter,sans-serif;'>"
             "<thead><tr style='background:#1a1a2e;'>"
-            f"<th style='{th_style}'>🖼</th>"
-            f"<th style='{th_style}'>Sarlavha</th>"
-            f"<th style='{th_style}'>Kanal</th>"
-            f"<th style='{th_style}'>⚡ Score</th>"
-            f"<th style='{th_style}'>👁 Ko'rish</th>"
-            f"<th style='{th_style}'>👥 Obuna</th>"
-            f"<th style='{th_style}'>👍 Layk</th>"
-            f"<th style='{th_style}'>💬 Engage</th>"
-            f"<th style='{th_style}'>📅 Sana</th>"
-            "</tr></thead>"
-            "<tbody>" + "".join(rows_html) + "</tbody>"
-            "</table></div>"
+            f"<th style='{th}'>🖼</th><th style='{th}'>Sarlavha</th><th style='{th}'>Kanal</th>"
+            f"<th style='{th}'>⚡ Score</th><th style='{th}'>👁 Ko'rish</th>"
+            f"<th style='{th}'>👥 Obuna</th><th style='{th}'>👍 Layk</th>"
+            f"<th style='{th}'>💬 Engage</th><th style='{th}'>📅 Sana</th>"
+            "</tr></thead><tbody>" + "".join(rows_html) + "</tbody></table></div>"
         )
         st.markdown(table_html, unsafe_allow_html=True)
-
         st.markdown("<br>", unsafe_allow_html=True)
         _topic_name = st.session_state.get("last_topic","result")
         csv_data = pd.DataFrame({
-            "title":    df["title"],
-            "channel":  df["channel"],
-            "score":    df["outlier"],
-            "views":    df["views"],
-            "subs":     df["subs"],
-            "likes":    df["likes"],
-            "comments": df["comments"],
-            "url":      df["url"],
+            "title":df["title"],"channel":df["channel"],"score":df["outlier"],
+            "views":df["views"],"subs":df["subs"],"likes":df["likes"],
+            "comments":df["comments"],"url":df["url"],
         }).to_csv(index=False)
-        st.download_button(
-            "⬇️ CSV yuklab olish", csv_data,
+        st.download_button("⬇️ CSV yuklab olish", csv_data,
             f"viral777_{_topic_name}_{datetime.now().strftime('%Y%m%d')}.csv",
-            "text/csv", use_container_width=True
-        )
+            "text/csv", use_container_width=True)
 
 # ══════════════════════════════════════════
 # TAB 4: CHARTS
@@ -1505,91 +1171,47 @@ with TAB_CHART:
         st.info("🔍 Avval chap paneldan qidiruv boshlang.")
     else:
         df = pd.DataFrame(st.session_state.results)
-
         ch1, ch2 = st.columns(2)
-
-        # Views vs Outlier scatter
         with ch1:
-            st.markdown("<div class='section-title'>👁 Ko'rishlar vs Viral Score</div>",
-                        unsafe_allow_html=True)
-            fig1 = px.scatter(
-                df, x='views', y='outlier',
-                size='likes', color='outlier',
-                hover_name='title',
+            st.markdown("<div class='section-title'>👁 Ko'rishlar vs Viral Score</div>", unsafe_allow_html=True)
+            fig1 = px.scatter(df,x='views',y='outlier',size='likes',color='outlier',hover_name='title',
                 hover_data={'channel':True,'views':':,.0f','outlier':':.1f'},
                 color_continuous_scale=['#2a2a58','#6c63ff','#ff4757'],
-                labels={'views':'Ko\'rishlar','outlier':'Viral Score'},
-                size_max=30, log_x=True,
-            )
-            fig1.update_layout(
-                paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-                height=320, margin=dict(l=0,r=0,t=10,b=0),
-                font=dict(color='#aaaacc',family='Inter'),
+                labels={'views':"Ko'rishlar",'outlier':'Viral Score'},size_max=30,log_x=True)
+            fig1.update_layout(paper_bgcolor='rgba(0,0,0,0)',plot_bgcolor='rgba(0,0,0,0)',
+                height=320,margin=dict(l=0,r=0,t=10,b=0),font=dict(color='#aaaacc',family='Inter'),
                 xaxis=dict(gridcolor='#1e1e2e',color='#666688'),
-                yaxis=dict(gridcolor='#1e1e2e',color='#666688'),
-                coloraxis_showscale=False,
-            )
+                yaxis=dict(gridcolor='#1e1e2e',color='#666688'),coloraxis_showscale=False)
             st.plotly_chart(fig1, use_container_width=True)
-
-        # Score distribution
         with ch2:
-            st.markdown("<div class='section-title'>📊 Viral Score Distribution</div>",
-                        unsafe_allow_html=True)
-            fig2 = px.histogram(
-                df, x='outlier', nbins=20,
-                color_discrete_sequence=['#6c63ff'],
-                labels={'outlier':'Viral Score','count':"Videolar soni"},
-            )
-            fig2.update_layout(
-                paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-                height=320, margin=dict(l=0,r=0,t=10,b=0),
-                font=dict(color='#aaaacc',family='Inter'),
+            st.markdown("<div class='section-title'>📊 Viral Score Distribution</div>", unsafe_allow_html=True)
+            fig2 = px.histogram(df,x='outlier',nbins=20,color_discrete_sequence=['#6c63ff'],
+                labels={'outlier':'Viral Score','count':"Videolar soni"})
+            fig2.update_layout(paper_bgcolor='rgba(0,0,0,0)',plot_bgcolor='rgba(0,0,0,0)',
+                height=320,margin=dict(l=0,r=0,t=10,b=0),font=dict(color='#aaaacc',family='Inter'),
                 xaxis=dict(gridcolor='#1e1e2e',color='#666688'),
-                yaxis=dict(gridcolor='#1e1e2e',color='#666688'),
-                bargap=0.1,
-            )
-            fig2.update_traces(marker_line_width=0, opacity=0.85)
+                yaxis=dict(gridcolor='#1e1e2e',color='#666688'),bargap=0.1)
+            fig2.update_traces(marker_line_width=0,opacity=0.85)
             st.plotly_chart(fig2, use_container_width=True)
-
         ch3, ch4 = st.columns(2)
-
-        # Top channels bar
         with ch3:
-            st.markdown("<div class='section-title'>📺 Eng Ko'p Video Chiqqan Kanallar</div>",
-                        unsafe_allow_html=True)
+            st.markdown("<div class='section-title'>📺 Eng Ko'p Video Chiqqan Kanallar</div>", unsafe_allow_html=True)
             ch_cnt = df.groupby('channel').size().sort_values(ascending=False).head(10)
-            fig3 = px.bar(
-                x=ch_cnt.values, y=ch_cnt.index, orientation='h',
-                color=ch_cnt.values,
-                color_continuous_scale=['#2a2a58','#6c63ff'],
-                labels={'x':"Videolar soni",'y':''},
-            )
-            fig3.update_layout(
-                paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-                height=320, margin=dict(l=0,r=0,t=10,b=0),
-                font=dict(color='#aaaacc',family='Inter'),
+            fig3 = px.bar(x=ch_cnt.values,y=ch_cnt.index,orientation='h',color=ch_cnt.values,
+                color_continuous_scale=['#2a2a58','#6c63ff'],labels={'x':"Videolar soni",'y':''})
+            fig3.update_layout(paper_bgcolor='rgba(0,0,0,0)',plot_bgcolor='rgba(0,0,0,0)',
+                height=320,margin=dict(l=0,r=0,t=10,b=0),font=dict(color='#aaaacc',family='Inter'),
                 xaxis=dict(gridcolor='#1e1e2e',color='#666688'),
-                yaxis=dict(color='#ccccdd'),
-                coloraxis_showscale=False,
-            )
+                yaxis=dict(color='#ccccdd'),coloraxis_showscale=False)
             st.plotly_chart(fig3, use_container_width=True)
-
-        # Engagement
         with ch4:
-            st.markdown("<div class='section-title'>💬 Engagement Rate Tahlili</div>",
-                        unsafe_allow_html=True)
+            st.markdown("<div class='section-title'>💬 Engagement Rate Tahlili</div>", unsafe_allow_html=True)
             df['engage'] = ((df['likes']+df['comments'])/df['views'].clip(lower=1)*100).round(2)
-            fig4 = px.box(
-                df, y='engage', points='all',
-                color_discrete_sequence=['#6c63ff'],
-                labels={'engage':'Engagement Rate (%)'},
-            )
-            fig4.update_layout(
-                paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-                height=320, margin=dict(l=0,r=0,t=10,b=0),
-                font=dict(color='#aaaacc',family='Inter'),
-                yaxis=dict(gridcolor='#1e1e2e',color='#666688'),
-            )
+            fig4 = px.box(df,y='engage',points='all',color_discrete_sequence=['#6c63ff'],
+                labels={'engage':'Engagement Rate (%)'})
+            fig4.update_layout(paper_bgcolor='rgba(0,0,0,0)',plot_bgcolor='rgba(0,0,0,0)',
+                height=320,margin=dict(l=0,r=0,t=10,b=0),font=dict(color='#aaaacc',family='Inter'),
+                yaxis=dict(gridcolor='#1e1e2e',color='#666688'))
             st.plotly_chart(fig4, use_container_width=True)
 
 # ══════════════════════════════════════════
@@ -1597,290 +1219,56 @@ with TAB_CHART:
 # ══════════════════════════════════════════
 with TAB_HISTORY:
     if st.session_state.history:
-        st.markdown("<div class='section-title'>🕐 Qidiruv Tarixi</div>",
-                    unsafe_allow_html=True)
-        # Yangi DataFrame — ustun nomlar allaqachon lotin (history.append da lotin yozilgan)
-        raw_hist = st.session_state.history
-        hist_df = pd.DataFrame(raw_hist).iloc[::-1].reset_index(drop=True)
-        # Agar ustun nomlari kirill bo'lsa, lotin ga o'tkazamiz
-        rename_map = {
-            "Vaqt":"Vaqt","Sana":"Sana","Mavzu":"Mavzu",
-            "Bozor":"Bozor","Davr":"Davr","Topildi":"Topildi"
-        }
-        hist_df = hist_df.rename(columns=rename_map)
-        # Faqat mavjud ustunlarni ko'rsatamiz
-        show_cols = [c for c in ["Vaqt","Sana","Mavzu","Bozor","Davr","Topildi"]
-                     if c in hist_df.columns]
-        st.dataframe(
-            hist_df[show_cols],
-            use_container_width=True,
-            hide_index=True,
+        st.markdown("<div class='section-title'>🕐 Qidiruv Tarixi</div>", unsafe_allow_html=True)
+
+        badge_colors = [
+            ("#ff4757","rgba(255,71,87,0.15)"),("# ffa502","rgba(255,165,2,0.15)"),
+            ("#6c63ff","rgba(108,99,255,0.15)"),("#2ed573","rgba(46,213,115,0.15)"),
+            ("#ff6b81","rgba(255,107,129,0.15)"),
+        ]
+        hist_rows_list = []
+        for i, h in enumerate(reversed(st.session_state.history)):
+            bg = "#13131f" if i%2==0 else "#0f0f1a"
+            bc, bbg = badge_colors[i % len(badge_colors)]
+            topildi = h.get("Topildi","-")
+            mavzu   = html_mod.escape(str(h.get("Mavzu","-")))
+            bozor   = html_mod.escape(str(h.get("Bozor","-")))
+            vaqt    = html_mod.escape(str(h.get("Vaqt","-")))
+            sana    = html_mod.escape(str(h.get("Sana","-")))
+            davr    = html_mod.escape(str(h.get("Davr","-")))
+            hist_rows_list.append(
+                f"<tr style='background:{bg};border-bottom:1px solid #1a1a2e;'>"
+                f"<td style='padding:13px 16px;color:#aaaacc;font-size:13px;white-space:nowrap;'>"
+                f"<span style='color:#6c63ff;font-weight:700;'>{sana}</span> "
+                f"<span style='color:#555577;'>{vaqt}</span></td>"
+                f"<td style='padding:13px 16px;'>"
+                f"<span style='background:rgba(108,99,255,0.12);border:1px solid rgba(108,99,255,0.25);"
+                f"border-radius:8px;padding:5px 12px;color:#9c93ff;font-weight:800;font-size:14px;'>"
+                f"🔍 {mavzu}</span></td>"
+                f"<td style='padding:13px 16px;color:#ccccdd;font-size:13px;'>{bozor}</td>"
+                f"<td style='padding:13px 16px;color:#888899;font-size:13px;'>{davr}</td>"
+                f"<td style='padding:13px 16px;'>"
+                f"<span style='background:{bbg};border:1px solid {bc};"
+                f"border-radius:10px;padding:5px 14px;color:{bc};font-weight:800;font-size:14px;'>"
+                f"{topildi} ta video</span></td>"
+                f"</tr>"
+            )
+        th_st = "padding:13px 16px;color:#9c93ff;font-size:11px;text-transform:uppercase;letter-spacing:1.2px;text-align:left;border-bottom:2px solid #2a2a4a;font-weight:700;"
+        hist_html = (
+            "<div style='overflow-x:auto;border-radius:16px;border:1px solid #1e1e2e;"
+            "margin-top:12px;box-shadow:0 4px 24px rgba(0,0,0,0.4);'>"
+            "<table style='width:100%;border-collapse:collapse;background:#0a0a14;font-family:Inter,sans-serif;'>"
+            "<thead><tr style='background:#12122a;'>"
+            f"<th style='{th_st}'>📅 Sana / Vaqt</th>"
+            f"<th style='{th_st}'>🔍 Qidirilgan mavzu</th>"
+            f"<th style='{th_st}'>🌍 Bozor</th>"
+            f"<th style='{th_st}'>📆 Davr</th>"
+            f"<th style='{th_st}'>📊 Natija</th>"
+            "</tr></thead><tbody>" + "".join(hist_rows_list) + "</tbody></table></div>"
         )
+        st.markdown(hist_html, unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
         if st.button("🗑 Tarixni tozalash"):
             st.session_state.history=[]; st.rerun()
     else:
         st.info("🔍 Hali qidiruv amalga oshirilmagan.")
-
-# ══════════════════════════════════════════
-# TAB 6: QO'LLANMA
-# ══════════════════════════════════════════
-with TAB_GUIDE:
-    st.markdown("""
-    <div style='max-width:800px;margin:0 auto;padding:20px 0;'>
-
-    <div style='text-align:center;margin-bottom:40px;'>
-        <div style='font-size:56px;'>📖</div>
-        <h2 style='color:#fff;font-size:28px;font-weight:900;margin:12px 0 8px;'>
-            Foydalanish Qo'llanmasi
-        </h2>
-        <p style='color:#555577;font-size:15px;'>Viral 777 platformasidan to'liq foydalanish uchun</p>
-    </div>
-
-    <!-- QISM 1: API KEY -->
-    <div style='background:#0f0f1a;border:1px solid #1e1e2e;border-radius:16px;
-                padding:28px 32px;margin-bottom:24px;'>
-        <div style='display:flex;align-items:center;gap:12px;margin-bottom:20px;'>
-            <span style='font-size:32px;'>🔑</span>
-            <div>
-                <h3 style='color:#9c93ff;font-size:20px;font-weight:800;margin:0;'>
-                    YouTube API Key olish
-                </h3>
-                <p style='color:#555577;font-size:13px;margin:4px 0 0;'>
-                    Bepul · Kuniga 10,000 so'rov · Google hisobi kerak
-                </p>
-            </div>
-        </div>
-
-        <div style='display:flex;flex-direction:column;gap:12px;'>
-            <div style='display:flex;align-items:flex-start;gap:14px;'>
-                <span style='background:rgba(108,99,255,0.2);border:1px solid #6c63ff;
-                             border-radius:50%;width:28px;height:28px;display:flex;
-                             align-items:center;justify-content:center;
-                             color:#9c93ff;font-weight:800;font-size:13px;flex-shrink:0;'>1</span>
-                <div>
-                    <p style='color:#e8e8f0;font-size:14px;margin:0;font-weight:600;'>
-                        Google Cloud Console ga kiring
-                    </p>
-                    <a href="https://console.cloud.google.com" target="_blank"
-                       style='color:#6c63ff;font-size:13px;'>
-                        → console.cloud.google.com
-                    </a>
-                </div>
-            </div>
-            <div style='display:flex;align-items:flex-start;gap:14px;'>
-                <span style='background:rgba(108,99,255,0.2);border:1px solid #6c63ff;
-                             border-radius:50%;width:28px;height:28px;display:flex;
-                             align-items:center;justify-content:center;
-                             color:#9c93ff;font-weight:800;font-size:13px;flex-shrink:0;'>2</span>
-                <p style='color:#e8e8f0;font-size:14px;margin:0;'>
-                    Yuqori chap burchakda <b style="color:#9c93ff;">➕ New Project</b> bosing →
-                    Loyiha nomini kiriting → <b style="color:#9c93ff;">Create</b>
-                </p>
-            </div>
-            <div style='display:flex;align-items:flex-start;gap:14px;'>
-                <span style='background:rgba(108,99,255,0.2);border:1px solid #6c63ff;
-                             border-radius:50%;width:28px;height:28px;display:flex;
-                             align-items:center;justify-content:center;
-                             color:#9c93ff;font-weight:800;font-size:13px;flex-shrink:0;'>3</span>
-                <p style='color:#e8e8f0;font-size:14px;margin:0;'>
-                    Chap menyu → <b style="color:#9c93ff;">APIs & Services</b> →
-                    <b style="color:#9c93ff;">Library</b> → qidiruv: 
-                    <b style="color:#ffa502;">"YouTube Data API v3"</b> → 
-                    <b style="color:#2ed573;">Enable</b>
-                </p>
-            </div>
-            <div style='display:flex;align-items:flex-start;gap:14px;'>
-                <span style='background:rgba(108,99,255,0.2);border:1px solid #6c63ff;
-                             border-radius:50%;width:28px;height:28px;display:flex;
-                             align-items:center;justify-content:center;
-                             color:#9c93ff;font-weight:800;font-size:13px;flex-shrink:0;'>4</span>
-                <p style='color:#e8e8f0;font-size:14px;margin:0;'>
-                    <b style="color:#9c93ff;">Credentials</b> →
-                    <b style="color:#9c93ff;">+ Create Credentials</b> →
-                    <b style="color:#9c93ff;">API Key</b> →
-                    Kalitni nusxalang ✅
-                </p>
-            </div>
-            <div style='display:flex;align-items:flex-start;gap:14px;'>
-                <span style='background:rgba(108,99,255,0.2);border:1px solid #6c63ff;
-                             border-radius:50%;width:28px;height:28px;display:flex;
-                             align-items:center;justify-content:center;
-                             color:#9c93ff;font-weight:800;font-size:13px;flex-shrink:0;'>5</span>
-                <p style='color:#e8e8f0;font-size:14px;margin:0;'>
-                    Chap paneldagi <b style="color:#ffa502;">🔑 YouTube API Key</b> 
-                    maydoniga kalitni joylashtiring
-                </p>
-            </div>
-        </div>
-
-        <div style='background:rgba(255,71,87,0.08);border:1px solid rgba(255,71,87,0.2);
-                    border-radius:10px;padding:14px 18px;margin-top:20px;'>
-            <p style='color:#ff6b6b;font-size:13px;margin:0;'>
-                ⚠️ <b>Muhim:</b> API kalitni hech kim bilan ulashmang!
-                Bepul limit: kuniga <b>10,000 so'rov</b>.
-                Limit tugasa, ertasi kuni avtomatik tiklanadi.
-            </p>
-        </div>
-    </div>
-
-    <!-- QISM 2: QANDAY ISHLAYDI -->
-    <div style='background:#0f0f1a;border:1px solid #1e1e2e;border-radius:16px;
-                padding:28px 32px;margin-bottom:24px;'>
-        <div style='display:flex;align-items:center;gap:12px;margin-bottom:20px;'>
-            <span style='font-size:32px;'>🚀</span>
-            <h3 style='color:#9c93ff;font-size:20px;font-weight:800;margin:0;'>
-                Qanday Ishlaydi?
-            </h3>
-        </div>
-        <div style='display:grid;grid-template-columns:1fr 1fr;gap:16px;'>
-            <div style='background:#13131f;border-radius:12px;padding:18px;'>
-                <div style='font-size:24px;margin-bottom:8px;'>⚡</div>
-                <h4 style='color:#fff;font-size:14px;font-weight:700;margin:0 0 6px;'>
-                    Viral Score nima?
-                </h4>
-                <p style='color:#888899;font-size:13px;margin:0;line-height:1.5;'>
-                    Video ko'rishlari ÷ kanal obunachilari.
-                    Masalan: 100,000 ko'rish / 1,000 obunachi = <b style="color:#ff4757;">100x</b>
-                </p>
-            </div>
-            <div style='background:#13131f;border-radius:12px;padding:18px;'>
-                <div style='font-size:24px;margin-bottom:8px;'>🔥</div>
-                <h4 style='color:#fff;font-size:14px;font-weight:700;margin:0 0 6px;'>
-                    Qaysi score yaxshi?
-                </h4>
-                <p style='color:#888899;font-size:13px;margin:0;line-height:1.5;'>
-                    <span style="color:#ff4757;">100x+</span> = Mega viral<br>
-                    <span style="color:#ffa502;">50–100x</span> = Viral<br>
-                    <span style="color:#6c63ff;">20–50x</span> = Trendda<br>
-                    <span style="color:#2ed573;">10–20x</span> = Yaxshi
-                </p>
-            </div>
-            <div style='background:#13131f;border-radius:12px;padding:18px;'>
-                <div style='font-size:24px;margin-bottom:8px;'>📊</div>
-                <h4 style='color:#fff;font-size:14px;font-weight:700;margin:0 0 6px;'>
-                    Nisha topish
-                </h4>
-                <p style='color:#888899;font-size:13px;margin:0;line-height:1.5;'>
-                    O'rtacha score <b style="color:#9c93ff;">50x</b> dan yuqori 
-                    nishalar — kuchli bozor.
-                    Raqobat kam, lekin talab ko'p.
-                </p>
-            </div>
-            <div style='background:#13131f;border-radius:12px;padding:18px;'>
-                <div style='font-size:24px;margin-bottom:8px;'>📅</div>
-                <h4 style='color:#fff;font-size:14px;font-weight:700;margin:0 0 6px;'>
-                    Davr tanlash
-                </h4>
-                <p style='color:#888899;font-size:13px;margin:0;line-height:1.5;'>
-                    <b style="color:#fff;">7 kun</b> — hozirgi trendlar<br>
-                    <b style="color:#fff;">30 kun</b> — oylik tendentsiya<br>
-                    <b style="color:#fff;">90+ kun</b> — uzoq muddatli trend
-                </p>
-            </div>
-        </div>
-    </div>
-
-    <!-- QISM 3: TABLAR HAQIDA -->
-    <div style='background:#0f0f1a;border:1px solid #1e1e2e;border-radius:16px;
-                padding:28px 32px;margin-bottom:24px;'>
-        <div style='display:flex;align-items:center;gap:12px;margin-bottom:20px;'>
-            <span style='font-size:32px;'>📑</span>
-            <h3 style='color:#9c93ff;font-size:20px;font-weight:800;margin:0;'>
-                Tablar va Funksiyalar
-            </h3>
-        </div>
-        <div style='display:flex;flex-direction:column;gap:10px;'>
-            <div style='display:flex;align-items:center;gap:14px;padding:12px 16px;
-                        background:#13131f;border-radius:10px;'>
-                <span style='font-size:20px;'>🔥</span>
-                <div>
-                    <b style='color:#fff;font-size:14px;'>Trend Tahlili</b>
-                    <p style='color:#666688;font-size:12px;margin:2px 0 0;'>
-                        Umumiy statistika, viral score gauge, top 10 grafik, eng viral videolar
-                    </p>
-                </div>
-            </div>
-            <div style='display:flex;align-items:center;gap:14px;padding:12px 16px;
-                        background:#13131f;border-radius:10px;'>
-                <span style='font-size:20px;'>🎬</span>
-                <div>
-                    <b style='color:#fff;font-size:14px;'>Video Kartochkalar</b>
-                    <p style='color:#666688;font-size:12px;margin:2px 0 0;'>
-                        Thumbnail, sarlavha, score, engage% — karta ko'rinishida
-                    </p>
-                </div>
-            </div>
-            <div style='display:flex;align-items:center;gap:14px;padding:12px 16px;
-                        background:#13131f;border-radius:10px;'>
-                <span style='font-size:20px;'>📊</span>
-                <div>
-                    <b style='color:#fff;font-size:14px;'>Jadval</b>
-                    <p style='color:#666688;font-size:12px;margin:2px 0 0;'>
-                        Barcha ma'lumotlar jadvali, CSV yuklab olish imkoni
-                    </p>
-                </div>
-            </div>
-            <div style='display:flex;align-items:center;gap:14px;padding:12px 16px;
-                        background:#13131f;border-radius:10px;'>
-                <span style='font-size:20px;'>📈</span>
-                <div>
-                    <b style='color:#fff;font-size:14px;'>Grafiklar</b>
-                    <p style='color:#666688;font-size:12px;margin:2px 0 0;'>
-                        Scatter, histogram, kanal tahlili, engagement boxplot
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- QISM 4: MASLAHATLAR -->
-    <div style='background:linear-gradient(135deg,#0f0f1a,#12121f);
-                border:1px solid #2a2a4a;border-radius:16px;padding:28px 32px;'>
-        <div style='display:flex;align-items:center;gap:12px;margin-bottom:20px;'>
-            <span style='font-size:32px;'>💡</span>
-            <h3 style='color:#9c93ff;font-size:20px;font-weight:800;margin:0;'>
-                Foydali Maslahatlar
-            </h3>
-        </div>
-        <div style='display:flex;flex-direction:column;gap:10px;'>
-            <div style='display:flex;gap:10px;align-items:flex-start;'>
-                <span style='color:#2ed573;font-size:16px;flex-shrink:0;'>✓</span>
-                <p style='color:#ccccdd;font-size:14px;margin:0;'>
-                    <b style="color:#fff;">Min Outlier Score</b> ni <b style="color:#ffa502;">50+</b>
-                    qo'ying — faqat haqiqiy viral videolarni ko'rish uchun
-                </p>
-            </div>
-            <div style='display:flex;gap:10px;align-items:flex-start;'>
-                <span style='color:#2ed573;font-size:16px;flex-shrink:0;'>✓</span>
-                <p style='color:#ccccdd;font-size:14px;margin:0;'>
-                    <b style="color:#fff;">7 kunlik davr</b> + katta bozor (US) —
-                    eng yangi trendlarni ko'rish uchun ideal
-                </p>
-            </div>
-            <div style='display:flex;gap:10px;align-items:flex-start;'>
-                <span style='color:#2ed573;font-size:16px;flex-shrink:0;'>✓</span>
-                <p style='color:#ccccdd;font-size:14px;margin:0;'>
-                    Bir nisha bo'yicha bir necha bozorni tekshiring —
-                    <b style="color:#fff;">US</b>, <b style="color:#fff;">GB</b>,
-                    <b style="color:#fff;">UZ</b> farqli trendlar ko'rsatadi
-                </p>
-            </div>
-            <div style='display:flex;gap:10px;align-items:flex-start;'>
-                <span style='color:#2ed573;font-size:16px;flex-shrink:0;'>✓</span>
-                <p style='color:#ccccdd;font-size:14px;margin:0;'>
-                    <b style="color:#fff;">Engage%</b> yuqori video (>2%) —
-                    auditoriya juda faol, bu nishada siz ham muvaffaqiyatli bo'lasiz
-                </p>
-            </div>
-            <div style='display:flex;gap:10px;align-items:flex-start;'>
-                <span style='color:#6c63ff;font-size:16px;flex-shrink:0;'>💡</span>
-                <p style='color:#ccccdd;font-size:14px;margin:0;'>
-                    Natijalarni <b style="color:#9c93ff;">CSV</b> sifatida yuklab,
-                    Excel da chuqurroq tahlil qiling
-                </p>
-            </div>
-        </div>
-    </div>
-
-    </div>
-    """, unsafe_allow_html=True)
