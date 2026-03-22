@@ -61,54 +61,80 @@ st.set_page_config(
     menu_items={"Get Help":None,"Report a bug":None,"About":None}
 )
 
-# Dark/Light mode class injection
+# Dark/Light mode — butun sahifaga ta'sir qiladi
 def apply_theme():
     if not st.session_state.get("dark_mode", True):
-        st.markdown("""
-        <script>
-        document.body.classList.add('light-bg');
-        document.querySelector('.stApp').classList.add('light-bg');
-        </script>
-        <style>
-        .stApp, .main, .block-container,
-        html, body {
+        st.markdown("""<style>
+        /* ══ LIGHT MODE — FULL PAGE ══ */
+        html, body, .stApp, .main, .block-container,
+        [data-testid="stAppViewContainer"],
+        [data-testid="stAppViewBlockContainer"] {
             background-color: #f0f2f8 !important;
             color: #1a1a2e !important;
         }
+        header[data-testid="stHeader"] { background: #f0f2f8 !important; }
         [data-testid="stSidebar"], [data-testid="stSidebar"] > div {
-            background: linear-gradient(180deg, #e8eaf6, #dde1f5) !important;
+            background: linear-gradient(180deg, #e8eaf6 0%, #dde1f5 100%) !important;
             border-right: 1px solid #c5cae9 !important;
         }
         [data-testid="stSidebar"] * { color: #1a1a2e !important; }
-        .stat-card { background: #ffffff !important; border-color: #c5cae9 !important; box-shadow: 0 2px 12px rgba(0,0,0,0.08) !important; }
+        [data-testid="stSidebar"] input { background: #ffffff !important; color: #1a1a2e !important; border-color: #c5cae9 !important; }
+        [data-testid="stSidebar"] [data-baseweb="select"] > div { background: #ffffff !important; color: #1a1a2e !important; border-color: #c5cae9 !important; }
+        /* Main content */
+        .stat-card { background: #ffffff !important; border-color: #c5cae9 !important; box-shadow: 0 2px 16px rgba(63,81,181,0.08) !important; }
         .stat-label { color: #7986cb !important; }
         .stat-value { color: #1a1a2e !important; }
-        .video-card { background: #ffffff !important; border-color: #c5cae9 !important; }
-        .vc-title { color: #1a1a2e !important; }
+        .stat-sub   { color: #9fa8da !important; }
+        .stat-icon  { opacity: 0.08 !important; }
+        .video-card { background: #ffffff !important; border-color: #c5cae9 !important; box-shadow: 0 2px 12px rgba(0,0,0,0.06) !important; }
+        .vc-title   { color: #1a1a2e !important; }
         .vc-channel { color: #7986cb !important; }
         .vc-stat-val { color: #1a1a2e !important; }
         .vc-stat-lbl { color: #9fa8da !important; }
+        .vs-logo { background: linear-gradient(135deg,#3f51b5,#e91e63) !important; -webkit-background-clip:text !important; -webkit-text-fill-color:transparent !important; }
+        .vs-tagline { color: #9fa8da !important; }
         .section-title { color: #1a1a2e !important; }
+        .section-title span { color: #7986cb !important; }
+        .viral-score-box { background: #ffffff !important; border-color: #c5cae9 !important; }
+        .vs-score { background: linear-gradient(135deg,#3f51b5,#e91e63) !important; -webkit-background-clip:text !important; -webkit-text-fill-color:transparent !important; }
+        .vs-score-label { color: #7986cb !important; }
+        .vs-score-desc  { color: #9fa8da !important; }
+        .sub-box  { background: #ffffff !important; border-color: #c5cae9 !important; }
+        .act-box  { background: #f5f5ff !important; border-color: #9fa8da !important; }
+        .search-hint { background: #e8eaf6 !important; border-color: #c5cae9 !important; color: #3f51b5 !important; }
+        /* Tabs */
         [data-baseweb="tab-list"] { background: #e8eaf6 !important; border-bottom: 1px solid #c5cae9 !important; }
-        [data-baseweb="tab"] { color: #7986cb !important; }
-        [aria-selected="true"][data-baseweb="tab"] { color: #3f51b5 !important; border-bottom-color: #3f51b5 !important; }
+        [data-baseweb="tab"] { color: #7986cb !important; background: transparent !important; }
+        [aria-selected="true"][data-baseweb="tab"] { color: #3f51b5 !important; border-bottom: 2px solid #3f51b5 !important; background: #dde1f5 !important; }
+        /* Inputs */
         input, textarea { background: #ffffff !important; color: #1a1a2e !important; border-color: #c5cae9 !important; }
         [data-baseweb="select"] > div { background: #ffffff !important; color: #1a1a2e !important; border-color: #c5cae9 !important; }
-        [data-baseweb="select"] span, [data-baseweb="select"] div { color: #1a1a2e !important; }
+        [data-baseweb="select"] div, [data-baseweb="select"] span, [data-baseweb="select"] p { color: #1a1a2e !important; }
+        [data-baseweb="select"] svg { fill: #3f51b5 !important; }
         [data-baseweb="option"] { background: #ffffff !important; color: #1a1a2e !important; }
         [data-baseweb="option"]:hover { background: #e8eaf6 !important; }
         [data-baseweb="popover"], [data-baseweb="popover"] * { background: #ffffff !important; color: #1a1a2e !important; }
-        .niche-pill { background: #e8eaf6 !important; border-color: #c5cae9 !important; color: #3f51b5 !important; }
-        .search-hint { background: #e8eaf6 !important; border-color: #c5cae9 !important; color: #7986cb !important; }
-        .viral-score-box { background: #ffffff !important; border-color: #c5cae9 !important; }
-        [data-testid="stMarkdownContainer"] p { color: #3a3a5e !important; }
-        [data-testid="stAlert"] { background: #e8eaf6 !important; color: #1a1a2e !important; }
+        [data-baseweb="menu"], [data-baseweb="menu"] * { background: #ffffff !important; color: #1a1a2e !important; }
+        li[role="option"], li[role="option"] * { background: #ffffff !important; color: #1a1a2e !important; }
+        li[role="option"]:hover { background: #e8eaf6 !important; }
+        /* Buttons */
+        .stButton > button { background: linear-gradient(135deg,#3f51b5,#5c6bc0) !important; color: #fff !important; }
+        /* Alerts, dataframe */
+        [data-testid="stAlert"] { background: #e8eaf6 !important; color: #1a1a2e !important; border-color: #c5cae9 !important; }
+        [data-testid="stDataFrame"] { background: #ffffff !important; }
         [data-testid="stDataFrame"] * { background: #ffffff !important; color: #1a1a2e !important; }
         [data-testid="stDataFrame"] th { background: #e8eaf6 !important; color: #3f51b5 !important; }
-        .stButton > button { background: linear-gradient(135deg, #3f51b5, #5c6bc0) !important; }
-        header[data-testid="stHeader"] { background: #f0f2f8 !important; }
-        </style>
-        """, unsafe_allow_html=True)
+        [data-testid="stDataFrame"] tr:hover td { background: #f0f2f8 !important; }
+        [data-testid="stMarkdownContainer"] p { color: #3a3a5e !important; }
+        .stCaption { color: #7986cb !important; }
+        hr { border-color: #c5cae9 !important; }
+        /* Expander */
+        [data-testid="stExpander"] { background: #ffffff !important; border-color: #c5cae9 !important; }
+        [data-testid="stExpander"] summary { color: #1a1a2e !important; }
+        [data-testid="stExpander"] p { color: #3a3a5e !important; }
+        /* Niche buttons */
+        .stButton > button[kind="secondary"] { background: #e8eaf6 !important; color: #3f51b5 !important; border: 1px solid #c5cae9 !important; }
+        </style>""", unsafe_allow_html=True)
 
 # ══════════════════════════════════════════
 # CSS — ViewStats Dark Pro Style
@@ -120,19 +146,25 @@ st.markdown("""
 /* ── RESET ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; }
 
-/* ── ЮҚОРИДАГИ ОҚ HEADER ВА MANAGE APP НИ ЯШИРИШ ── */
-#MainMenu { visibility: hidden !important; }
+/* ── HEADER, MANAGE APP, FOOTER YASHIRISH ── */
+#MainMenu { visibility: hidden !important; display: none !important; }
 header[data-testid="stHeader"] { 
     background: #0a0a0f !important;
     height: 0 !important;
     min-height: 0 !important;
     padding: 0 !important;
+    overflow: hidden !important;
 }
-[data-testid="stToolbar"] { display: none !important; }
-[data-testid="manage-app-button"] { display: none !important; }
+[data-testid="stToolbar"] { display: none !important; visibility: hidden !important; }
+[data-testid="manage-app-button"] { display: none !important; visibility: hidden !important; }
+button[data-testid="manage-app-button"] { display: none !important; }
+[class*="manage"] { display: none !important; }
+[title="Manage app"] { display: none !important; }
 iframe[title="streamlit_app"] { border: none !important; }
 .reportview-container .main footer { display: none !important; }
-footer { display: none !important; }
+footer, footer * { display: none !important; visibility: hidden !important; }
+.viewerBadge_container__r5tak { display: none !important; }
+[data-testid="stBottom"] { display: none !important; }
 
 /* ── GLOBAL ── */
 html, body, .stApp, .main, .block-container {
@@ -792,12 +824,15 @@ with st.sidebar:
     if topic != st.session_state["current_topic"]:
         st.session_state["current_topic"] = topic
 
-    # Search suggestions hint
+    # Search suggestions — faqat ko'rsatadi, bosilganda topic o'zgaradi
     if topic and len(topic)>=2:
-        hints = [n for n in NICHES if topic.lower() in n.lower() and n!=topic][:3]
+        hints = [n for n in NICHES if topic.lower() in n.lower() and n.lower()!=topic.lower()][:4]
         if hints:
-            st.markdown(f"<div class='search-hint'>💡 Таклифлар: {' · '.join(hints)}</div>",
-                        unsafe_allow_html=True)
+            hint_cols = st.columns(len(hints))
+            for hi, hn in enumerate(hints):
+                if hint_cols[hi].button(f"🔍 {hn}", key=f"hint_{hn}", use_container_width=True):
+                    st.session_state["current_topic"] = hn
+                    st.rerun()
 
     region_label = st.selectbox("🌍 Бозор:", list(REGIONS.keys()))
     region_code  = REGIONS[region_label]
@@ -834,7 +869,7 @@ TAB_TREND, TAB_CARDS, TAB_TABLE, TAB_CHART, TAB_HISTORY = st.tabs([
 # ══════════════════════════════════════════
 # SUBSCRIPTION BLOCK (shown in all tabs when needed)
 # ══════════════════════════════════════════
-def show_sub_block():
+def show_sub_block(tab_id="main"):
     oid = st.session_state.get("pending_order") or gen_code()
     st.session_state.pending_order = oid
     st.markdown(f"""
@@ -868,9 +903,9 @@ def show_sub_block():
     c1,c2,c3 = st.columns([1,2,1])
     with c2:
         code = st.text_input("", placeholder="4X9K2M",
-                              max_chars=6, key="code_inp",
+                              max_chars=6, key=f"code_inp_{tab_id}",
                               label_visibility="collapsed").strip().upper()
-        if st.button("🔓 КОДНИ ТАСДИҚЛАШ", use_container_width=True):
+        if st.button("🔓 КОДНИ ТАСДИҚЛАШ", key=f"code_btn_{tab_id}", use_container_width=True):
             if len(code)<6: st.error("❌ Код 6 та белгидан иборат!")
             else:
                 ok,msg = activate_by_code(code, uid)
@@ -1180,7 +1215,7 @@ with TAB_CARDS:
     need_sub2 = (not st.session_state.authenticated and
                  not is_subscribed(uid) and get_trial(uid)==0)
     if need_sub2:
-        show_sub_block()
+        show_sub_block("cards")
     elif not st.session_state.results:
         st.info("🔍 Аввал чап панелдан қидирув бошланг.")
     else:
@@ -1241,7 +1276,7 @@ with TAB_TABLE:
     need_sub3 = (not st.session_state.authenticated and
                  not is_subscribed(uid) and get_trial(uid)==0)
     if need_sub3:
-        show_sub_block()
+        show_sub_block("table")
     elif not st.session_state.results:
         st.info("🔍 Аввал чап панелдан қидирув бошланг.")
     else:
@@ -1273,8 +1308,9 @@ with TAB_TABLE:
         )
 
         # CSV export
+        _topic_name = st.session_state.get("last_topic","result")
         csv = df_show[['title','channel','Score','views','subs','likes','comments','url']].to_csv(index=False)
-        st.download_button("⬇️ CSV да юклаш", csv, f"viral777_{topic}_{datetime.now().strftime('%Y%m%d')}.csv",
+        st.download_button("⬇️ CSV да юклаш", csv, f"viral777_{_topic_name}_{datetime.now().strftime('%Y%m%d')}.csv",
                            "text/csv", use_container_width=True)
 
 # ══════════════════════════════════════════
@@ -1284,7 +1320,7 @@ with TAB_CHART:
     need_sub4 = (not st.session_state.authenticated and
                  not is_subscribed(uid) and get_trial(uid)==0)
     if need_sub4:
-        show_sub_block()
+        show_sub_block("charts")
     elif not st.session_state.results:
         st.info("🔍 Аввал чап панелдан қидирув бошланг.")
     else:
