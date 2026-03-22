@@ -24,6 +24,10 @@ import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
 import re, json, os, base64, uuid, threading, random, string, time, html as html_mod
+import io
+from openpyxl import Workbook
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+from openpyxl.utils import get_column_letter
 
 try:
     import telebot
@@ -417,6 +421,128 @@ def activate_by_code(code, uid):
     codes[code].update({"used":True,"used_by":uid,"used_at":datetime.now().isoformat()})
     db["activation_codes"] = codes; save_db(db)
     return True,"✅ Obuna muvaffaqiyatli faollashdi!"
+
+# ══════════════════════════════════════════
+# EXCEL YARATISH FUNKSIYASI
+# ══════════════════════════════════════════
+def create_excel(df, topic_name):
+    """Chiroyli formatlangan Excel fayl yaratish"""
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Viral Tahlil"
+
+    # Ranglar
+    PURPLE = "6C63FF"
+    DARK   = "0F0F1A"
+    HEADER = "1A1A2E"
+    RED    = "FF4757"
+    ORANGE = "FFA502"
+    BLUE   = "6C63FF"
+    GREEN  = "2ED573"
+    WHITE  = "FFFFFF"
+    GRAY   = "AAAACC"
+
+    # ── Sarlavha qatori (1-qator) ──
+    ws.merge_cells("A1:I1")
+    ws["A1"] = f"🔥 Viral 777 — {topic_name} Nishasi Tahlili"
+    ws["A1"].font = Font(name="Arial", bold=True, size=14, color=WHITE)
+    ws["A1"].fill = PatternFill("solid", fgColor=PURPLE)
+    ws["A1"].alignment = Alignment(horizontal="center", vertical="center")
+    ws.row_dimensions[1].height = 32
+
+    # ── Ustun sarlavhalari (2-qator) ──
+    headers = ["#", "Sarlavha", "Kanal", "⚡ Score", "👁 Ko'rishlar",
+               "👥 Obunachi", "👍 Layklar", "💬 Engage%", "🔗 Havola"]
+    col_widths = [5, 55, 22, 10, 14, 13, 12, 11, 50]
+
+    for col, (h, w) in enumerate(zip(headers, col_widths), 1):
+        cell = ws.cell(row=2, column=col, value=h)
+        cell.font = Font(name="Arial", bold=True, size=10, color=WHITE)
+        cell.fill = PatternFill("solid", fgColor=HEADER)
+        cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+        ws.column_dimensions[get_column_letter(col)].width = w
+    ws.row_dimensions[2].height = 24
+
+    # ── Ma'lumotlar ──
+    thin = Side(style="thin", color="2A2A4A")
+    border = Border(left=thin, right=thin, top=thin, bottom=thin)
+
+    for i, (_, row) in enumerate(df.iterrows(), 1):
+        r = i + 2
+        score = row["outlier"]
+        engage = round((row["likes"]+row["comments"])/max(row["views"],1)*100, 2)
+
+        # Score rangi
+        if score >= 100:   sc_color = RED
+        elif score >= 50:  sc_color = ORANGE
+        elif score >= 20:  sc_color = BLUE
+        else:              sc_color = GREEN
+
+        row_bg = "0A0A14" if i % 2 == 0 else "0F0F1A"
+
+        data = [
+            i,
+            row["title"],
+            row["channel"],
+            f"{score}x",
+            int(row["views"]),
+            int(row["subs"]),
+            int(row["likes"]),
+            f"{engage}%",
+            row["url"],
+        ]
+        for col, val in enumerate(data, 1):
+            cell = ws.cell(row=r, column=col, value=val)
+            cell.font = Font(name="Arial", size=9,
+                             color=sc_color if col == 4 else (WHITE if col != 9 else "6C63FF"))
+            cell.fill = PatternFill("solid", fgColor=row_bg)
+            cell.alignment = Alignment(
+                horizontal="center" if col in [1,4,5,6,7,8] else "left",
+                vertical="center", wrap_text=(col == 2)
+            )
+            cell.border = border
+            if col == 4:
+                cell.font = Font(name="Arial", bold=True, size=11, color=sc_color)
+            if col == 5:
+                cell.number_format = "#,##0"
+            if col == 6:
+                cell.number_format = "#,##0"
+            if col == 7:
+                cell.number_format = "#,##0"
+        ws.row_dimensions[r].height = 20
+
+    # ── Freeze panes ──
+    ws.freeze_panes = "A3"
+
+    # ── 2-sheet: Statistika ──
+    ws2 = wb.create_sheet("Statistika")
+    ws2["A1"] = "Ko'rsatkich"
+    ws2["B1"] = "Qiymat"
+    ws2["A1"].font = Font(bold=True, color=WHITE, name="Arial")
+    ws2["A1"].fill = PatternFill("solid", fgColor=PURPLE)
+    ws2["B1"].font = Font(bold=True, color=WHITE, name="Arial")
+    ws2["B1"].fill = PatternFill("solid", fgColor=PURPLE)
+    ws2.column_dimensions["A"].width = 28
+    ws2.column_dimensions["B"].width = 18
+
+    stats = [
+        ("Mavzu",            topic_name),
+        ("Jami videolar",    len(df)),
+        ("O'rtacha Score",   f"{round(df['outlier'].mean(),1)}x"),
+        ("Eng yuqori Score", f"{df['outlier'].max()}x"),
+        ("Jami Ko'rishlar",  int(df['views'].sum())),
+        ("O'rtacha Ko'rish", int(df['views'].mean())),
+        ("Top Kanal",        df.iloc[0]['channel'] if len(df)>0 else "-"),
+    ]
+    for r, (k, v) in enumerate(stats, 2):
+        ws2.cell(row=r, column=1, value=k).font = Font(name="Arial", size=10)
+        ws2.cell(row=r, column=2, value=v).font = Font(name="Arial", bold=True, size=10, color=PURPLE)
+
+    # Bytes ga o'girish
+    buf = io.BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+    return buf.getvalue()
 
 # ══════════════════════════════════════════
 # PAYMENT URLS
@@ -1151,24 +1277,23 @@ with TAB_TABLE:
         st.markdown(table_html, unsafe_allow_html=True)
         st.markdown("<br>", unsafe_allow_html=True)
         _topic_name = st.session_state.get("last_topic","result")
-        # UTF-8 BOM — Excel to'g'ri o'qishi uchun
-        csv_data = pd.DataFrame({
-            "Sarlavha":  df["title"],
-            "Kanal":     df["channel"],
-            "Score":     df["outlier"],
-            "Korishlar": df["views"],
-            "Obunachi":  df["subs"],
-            "Layklar":   df["likes"],
-            "Izohlar":   df["comments"],
-            "Havola":    df["url"],
-        }).to_csv(index=False, encoding="utf-8-sig")  # BOM — Excel uchun
-        st.download_button(
-            "⬇️ CSV yuklab olish (Excel uchun)",
-            data=csv_data.encode("utf-8-sig") if isinstance(csv_data, str) else csv_data,
-            file_name=f"viral777_{_topic_name}_{datetime.now().strftime('%Y%m%d')}.csv",
-            mime="text/csv; charset=utf-8-sig",
-            use_container_width=True
-        )
+        # Excel fayl yaratish va yuklab olish
+        _topic_excel = st.session_state.get("last_topic","result")
+        try:
+            excel_data = create_excel(df, _topic_excel)
+            st.download_button(
+                "⬇️ Excel yuklab olish (.xlsx)",
+                data=excel_data,
+                file_name=f"viral777_{_topic_excel}_{datetime.now().strftime('%Y%m%d')}.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                use_container_width=True
+            )
+        except Exception as ex:
+            # Fallback: CSV
+            csv_fb = df[["title","channel","outlier","views","subs","likes","comments","url"]].to_csv(index=False, encoding="utf-8-sig")
+            st.download_button("⬇️ CSV yuklab olish", csv_fb.encode("utf-8-sig"),
+                f"viral777_{_topic_excel}_{datetime.now().strftime('%Y%m%d')}.csv",
+                "text/csv", use_container_width=True)
 
 # ══════════════════════════════════════════
 # TAB 4: CHARTS
