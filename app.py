@@ -1008,13 +1008,15 @@ def show_sub_block(tab_id="main"):
 # ══════════════════════════════════════════
 # SEARCH LOGIC
 # ══════════════════════════════════════════
-# auto_search: pending=birinchi rerun, True=ikkinchi rerun (sidebar tayyor)
-_as = st.session_state.get("auto_search", False)
-if _as == "pending":
-    st.session_state["auto_search"] = True
+# Search trigger
+_do_search = search_btn
+if st.session_state.get("auto_search") == "pending":
+    st.session_state["auto_search"] = "ready"
     st.rerun()
-if search_btn or _as is True:
+elif st.session_state.get("auto_search") == "ready":
     st.session_state["auto_search"] = False
+    _do_search = True
+if _do_search:
     topic = st.session_state.get("current_topic", "Survival")
     current_key = st.query_params.get("apikey","") or api_key
     if not current_key:
