@@ -726,12 +726,13 @@ with st.sidebar:
 # ══════════════════════════════════════════
 # MAIN TABS
 # ══════════════════════════════════════════
-TAB_TREND, TAB_CARDS, TAB_TABLE, TAB_CHART, TAB_HISTORY = st.tabs([
+TAB_TREND, TAB_CARDS, TAB_TABLE, TAB_CHART, TAB_HISTORY, TAB_GUIDE = st.tabs([
     "🔥 Trend Tahlili",
     "🎬 Video Kartochkalar",
     "📊 Jadval",
     "📈 Grafiklar",
     "🕐 Tarix",
+    "📖 Qo'llanma",
 ])
 
 # ══════════════════════════════════════════
@@ -1150,14 +1151,24 @@ with TAB_TABLE:
         st.markdown(table_html, unsafe_allow_html=True)
         st.markdown("<br>", unsafe_allow_html=True)
         _topic_name = st.session_state.get("last_topic","result")
+        # UTF-8 BOM — Excel to'g'ri o'qishi uchun
         csv_data = pd.DataFrame({
-            "title":df["title"],"channel":df["channel"],"score":df["outlier"],
-            "views":df["views"],"subs":df["subs"],"likes":df["likes"],
-            "comments":df["comments"],"url":df["url"],
-        }).to_csv(index=False)
-        st.download_button("⬇️ CSV yuklab olish", csv_data,
-            f"viral777_{_topic_name}_{datetime.now().strftime('%Y%m%d')}.csv",
-            "text/csv", use_container_width=True)
+            "Sarlavha":  df["title"],
+            "Kanal":     df["channel"],
+            "Score":     df["outlier"],
+            "Korishlar": df["views"],
+            "Obunachi":  df["subs"],
+            "Layklar":   df["likes"],
+            "Izohlar":   df["comments"],
+            "Havola":    df["url"],
+        }).to_csv(index=False, encoding="utf-8-sig")  # BOM — Excel uchun
+        st.download_button(
+            "⬇️ CSV yuklab olish (Excel uchun)",
+            data=csv_data.encode("utf-8-sig") if isinstance(csv_data, str) else csv_data,
+            file_name=f"viral777_{_topic_name}_{datetime.now().strftime('%Y%m%d')}.csv",
+            mime="text/csv; charset=utf-8-sig",
+            use_container_width=True
+        )
 
 # ══════════════════════════════════════════
 # TAB 4: CHARTS
@@ -1272,3 +1283,156 @@ with TAB_HISTORY:
             st.session_state.history=[]; st.rerun()
     else:
         st.info("🔍 Hali qidiruv amalga oshirilmagan.")
+
+# ══════════════════════════════════════════
+# TAB 6: QO'LLANMA
+# ══════════════════════════════════════════
+with TAB_GUIDE:
+    st.markdown("""
+    <div style='max-width:820px;margin:0 auto;padding:20px 0;'>
+
+    <div style='text-align:center;margin-bottom:36px;'>
+        <div style='font-size:52px;'>📖</div>
+        <h2 style='color:#fff;font-size:26px;font-weight:900;margin:10px 0 6px;'>
+            Foydalanish Qo\'llanmasi
+        </h2>
+        <p style='color:#555577;font-size:14px;'>Viral 777 platformasidan to\'liq foydalanish uchun</p>
+    </div>
+
+    <!-- API KEY -->
+    <div style='background:#0f0f1a;border:1px solid #1e1e2e;border-radius:16px;padding:26px 30px;margin-bottom:20px;'>
+        <div style='display:flex;align-items:center;gap:12px;margin-bottom:18px;'>
+            <span style='font-size:28px;'>🔑</span>
+            <div>
+                <h3 style='color:#9c93ff;font-size:18px;font-weight:800;margin:0;'>YouTube API Key olish</h3>
+                <p style='color:#555577;font-size:12px;margin:3px 0 0;'>Bepul · Kuniga 10,000 so\'rov · Google hisobi kerak</p>
+            </div>
+        </div>
+        <div style='display:flex;flex-direction:column;gap:10px;'>
+            <div style='display:flex;align-items:flex-start;gap:12px;'>
+                <span style='background:rgba(108,99,255,0.2);border:1px solid #6c63ff;border-radius:50%;min-width:26px;height:26px;display:flex;align-items:center;justify-content:center;color:#9c93ff;font-weight:800;font-size:12px;'>1</span>
+                <div><p style='color:#e8e8f0;font-size:14px;margin:0;font-weight:600;'>Google Cloud Console ga kiring</p>
+                <a href="https://console.cloud.google.com" target="_blank" style='color:#6c63ff;font-size:12px;'>→ console.cloud.google.com</a></div>
+            </div>
+            <div style='display:flex;align-items:flex-start;gap:12px;'>
+                <span style='background:rgba(108,99,255,0.2);border:1px solid #6c63ff;border-radius:50%;min-width:26px;height:26px;display:flex;align-items:center;justify-content:center;color:#9c93ff;font-weight:800;font-size:12px;'>2</span>
+                <p style='color:#e8e8f0;font-size:14px;margin:0;'>Yuqori qismda <b style="color:#9c93ff;">➕ New Project</b> → nom bering → <b style="color:#9c93ff;">Create</b></p>
+            </div>
+            <div style='display:flex;align-items:flex-start;gap:12px;'>
+                <span style='background:rgba(108,99,255,0.2);border:1px solid #6c63ff;border-radius:50%;min-width:26px;height:26px;display:flex;align-items:center;justify-content:center;color:#9c93ff;font-weight:800;font-size:12px;'>3</span>
+                <p style='color:#e8e8f0;font-size:14px;margin:0;'>Chap menyu → <b style="color:#9c93ff;">APIs & Services</b> → <b style="color:#9c93ff;">Library</b> → qidiruv: <b style="color:#ffa502;">YouTube Data API v3</b> → <b style="color:#2ed573;">Enable</b></p>
+            </div>
+            <div style='display:flex;align-items:flex-start;gap:12px;'>
+                <span style='background:rgba(108,99,255,0.2);border:1px solid #6c63ff;border-radius:50%;min-width:26px;height:26px;display:flex;align-items:center;justify-content:center;color:#9c93ff;font-weight:800;font-size:12px;'>4</span>
+                <p style='color:#e8e8f0;font-size:14px;margin:0;'><b style="color:#9c93ff;">Credentials</b> → <b style="color:#9c93ff;">+ Create Credentials</b> → <b style="color:#9c93ff;">API Key</b> → Kalitni nusxalang ✅</p>
+            </div>
+            <div style='display:flex;align-items:flex-start;gap:12px;'>
+                <span style='background:rgba(108,99,255,0.2);border:1px solid #6c63ff;border-radius:50%;min-width:26px;height:26px;display:flex;align-items:center;justify-content:center;color:#9c93ff;font-weight:800;font-size:12px;'>5</span>
+                <p style='color:#e8e8f0;font-size:14px;margin:0;'>Chap paneldagi <b style="color:#ffa502;">🔑 YouTube API Key</b> bo\'limiga kalitni joylashtiring</p>
+            </div>
+        </div>
+        <div style='background:rgba(255,71,87,0.08);border:1px solid rgba(255,71,87,0.2);border-radius:10px;padding:12px 16px;margin-top:16px;'>
+            <p style='color:#ff6b6b;font-size:13px;margin:0;'>⚠️ <b>Muhim:</b> API kalitni hech kim bilan ulashmang! Bepul limit: kuniga <b>10,000 so\'rov</b>. Tugasa ertasi kuni avtomatik tiklanadi.</p>
+        </div>
+    </div>
+
+    <!-- DASTUR HAQIDA -->
+    <div style='background:#0f0f1a;border:1px solid #1e1e2e;border-radius:16px;padding:26px 30px;margin-bottom:20px;'>
+        <div style='display:flex;align-items:center;gap:12px;margin-bottom:18px;'>
+            <span style='font-size:28px;'>🚀</span>
+            <h3 style='color:#9c93ff;font-size:18px;font-weight:800;margin:0;'>Dastur Haqida</h3>
+        </div>
+        <div style='display:grid;grid-template-columns:1fr 1fr;gap:14px;'>
+            <div style='background:#13131f;border-radius:12px;padding:16px;'>
+                <div style='font-size:22px;margin-bottom:6px;'>⚡</div>
+                <h4 style='color:#fff;font-size:13px;font-weight:700;margin:0 0 5px;'>Viral Score nima?</h4>
+                <p style='color:#888899;font-size:12px;margin:0;line-height:1.5;'>Video ko\'rishlari ÷ kanal obunachilari. Masalan: 100,000 ko\'rish ÷ 1,000 obunachi = <b style="color:#ff4757;">100x</b> Mega Viral</p>
+            </div>
+            <div style='background:#13131f;border-radius:12px;padding:16px;'>
+                <div style='font-size:22px;margin-bottom:6px;'>🎯</div>
+                <h4 style='color:#fff;font-size:13px;font-weight:700;margin:0 0 5px;'>Qaysi score yaxshi?</h4>
+                <p style='color:#888899;font-size:12px;margin:0;line-height:1.6;'>
+                    <span style="color:#ff4757;">🔥 100x+</span> = Mega viral<br>
+                    <span style="color:#ffa502;">🚀 50–100x</span> = Viral<br>
+                    <span style="color:#6c63ff;">⚡ 20–50x</span> = Trendda<br>
+                    <span style="color:#2ed573;">✅ 10–20x</span> = Yaxshi
+                </p>
+            </div>
+            <div style='background:#13131f;border-radius:12px;padding:16px;'>
+                <div style='font-size:22px;margin-bottom:6px;'>📅</div>
+                <h4 style='color:#fff;font-size:13px;font-weight:700;margin:0 0 5px;'>Davr tanlash</h4>
+                <p style='color:#888899;font-size:12px;margin:0;line-height:1.5;'>
+                    <b style="color:#fff;">7 kun</b> — hozirgi trendlar<br>
+                    <b style="color:#fff;">30 kun</b> — oylik tendentsiya<br>
+                    <b style="color:#fff;">90+ kun</b> — uzoq muddatli trend
+                </p>
+            </div>
+            <div style='background:#13131f;border-radius:12px;padding:16px;'>
+                <div style='font-size:22px;margin-bottom:6px;'>🌍</div>
+                <h4 style='color:#fff;font-size:13px;font-weight:700;margin:0 0 5px;'>Bozor tanlash</h4>
+                <p style='color:#888899;font-size:12px;margin:0;line-height:1.5;'>
+                    <b style="color:#fff;">US/GB</b> — eng katta bozor<br>
+                    <b style="color:#fff;">UZ/RU</b> — mahalliy trendlar<br>
+                    Bir nishani har bozorda tekshiring!
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- TABLAR -->
+    <div style='background:#0f0f1a;border:1px solid #1e1e2e;border-radius:16px;padding:26px 30px;margin-bottom:20px;'>
+        <div style='display:flex;align-items:center;gap:12px;margin-bottom:16px;'>
+            <span style='font-size:28px;'>📑</span>
+            <h3 style='color:#9c93ff;font-size:18px;font-weight:800;margin:0;'>Tablar va Funksiyalar</h3>
+        </div>
+        <div style='display:flex;flex-direction:column;gap:8px;'>
+            <div style='display:flex;align-items:center;gap:12px;padding:10px 14px;background:#13131f;border-radius:10px;'>
+                <span style='font-size:18px;'>🔥</span>
+                <div><b style='color:#fff;font-size:13px;'>Trend Tahlili</b>
+                <p style='color:#555577;font-size:11px;margin:2px 0 0;'>Umumiy statistika, viral score ko\'rsatkichi, top 10 grafik, eng viral videolar</p></div>
+            </div>
+            <div style='display:flex;align-items:center;gap:12px;padding:10px 14px;background:#13131f;border-radius:10px;'>
+                <span style='font-size:18px;'>🎬</span>
+                <div><b style='color:#fff;font-size:13px;'>Video Kartochkalar</b>
+                <p style='color:#555577;font-size:11px;margin:2px 0 0;'>Thumbnail, sarlavha, score, engage% — karta ko\'rinishida</p></div>
+            </div>
+            <div style='display:flex;align-items:center;gap:12px;padding:10px 14px;background:#13131f;border-radius:10px;'>
+                <span style='font-size:18px;'>📊</span>
+                <div><b style='color:#fff;font-size:13px;'>Jadval</b>
+                <p style='color:#555577;font-size:11px;margin:2px 0 0;'>Barcha ma\'lumotlar jadvali, CSV yuklab olish imkoni (Excel uchun)</p></div>
+            </div>
+            <div style='display:flex;align-items:center;gap:12px;padding:10px 14px;background:#13131f;border-radius:10px;'>
+                <span style='font-size:18px;'>📈</span>
+                <div><b style='color:#fff;font-size:13px;'>Grafiklar</b>
+                <p style='color:#555577;font-size:11px;margin:2px 0 0;'>Scatter, histogram, kanal tahlili, engagement grafiklari</p></div>
+            </div>
+            <div style='display:flex;align-items:center;gap:12px;padding:10px 14px;background:#13131f;border-radius:10px;'>
+                <span style='font-size:18px;'>🕐</span>
+                <div><b style='color:#fff;font-size:13px;'>Tarix</b>
+                <p style='color:#555577;font-size:11px;margin:2px 0 0;'>Barcha qidiruvlaringiz tarixi — sana, mavzu, natija</p></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MASLAHATLAR -->
+    <div style='background:linear-gradient(135deg,#0f0f1a,#12121f);border:1px solid #2a2a4a;border-radius:16px;padding:26px 30px;'>
+        <div style='display:flex;align-items:center;gap:12px;margin-bottom:16px;'>
+            <span style='font-size:28px;'>💡</span>
+            <h3 style='color:#9c93ff;font-size:18px;font-weight:800;margin:0;'>Foydali Maslahatlar</h3>
+        </div>
+        <div style='display:flex;flex-direction:column;gap:8px;'>
+            <div style='display:flex;gap:10px;'><span style='color:#2ed573;font-size:14px;flex-shrink:0;'>✓</span>
+            <p style='color:#ccccdd;font-size:13px;margin:0;'><b style="color:#fff;">Min Outlier Score</b> ni <b style="color:#ffa502;">50+</b> qo\'ying — faqat haqiqiy viral videolarni ko\'rish uchun</p></div>
+            <div style='display:flex;gap:10px;'><span style='color:#2ed573;font-size:14px;flex-shrink:0;'>✓</span>
+            <p style='color:#ccccdd;font-size:13px;margin:0;'><b style="color:#fff;">7 kunlik davr + US bozori</b> — eng yangi trendlarni ko\'rish uchun ideal</p></div>
+            <div style='display:flex;gap:10px;'><span style='color:#2ed573;font-size:14px;flex-shrink:0;'>✓</span>
+            <p style='color:#ccccdd;font-size:13px;margin:0;'>Bir nishani bir necha bozorda tekshiring — <b style="color:#fff;">US, GB, UZ</b> farqli trendlar ko\'rsatadi</p></div>
+            <div style='display:flex;gap:10px;'><span style='color:#2ed573;font-size:14px;flex-shrink:0;'>✓</span>
+            <p style='color:#ccccdd;font-size:13px;margin:0;'><b style="color:#fff;">Engage% 2%+</b> bo\'lgan videolar — auditoriya juda faol nisha</p></div>
+            <div style='display:flex;gap:10px;'><span style='color:#6c63ff;font-size:14px;flex-shrink:0;'>💡</span>
+            <p style='color:#ccccdd;font-size:13px;margin:0;'>Natijalarni <b style="color:#9c93ff;">CSV</b> sifatida yuklab, Excel da chuqurroq tahlil qiling</p></div>
+        </div>
+    </div>
+
+    </div>
+    """, unsafe_allow_html=True)
