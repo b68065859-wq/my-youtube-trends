@@ -81,11 +81,15 @@ def apply_theme():
         [data-testid="stSidebar"] input { background: #ffffff !important; color: #1a1a2e !important; border-color: #c5cae9 !important; }
         [data-testid="stSidebar"] [data-baseweb="select"] > div { background: #ffffff !important; color: #1a1a2e !important; border-color: #c5cae9 !important; }
         /* Main content */
-        .stat-card { background: #ffffff !important; border-color: #c5cae9 !important; box-shadow: 0 2px 16px rgba(63,81,181,0.08) !important; }
+        .stat-card { background: #ffffff !important; border-color: #c5cae9 !important; box-shadow: 0 2px 16px rgba(63,81,181,0.1) !important; }
+        .stat-card.purple { border-top: 3px solid #3f51b5 !important; }
+        .stat-card.red    { border-top: 3px solid #e53935 !important; }
+        .stat-card.gold   { border-top: 3px solid #ffa000 !important; }
+        .stat-card.green  { border-top: 3px solid #43a047 !important; }
         .stat-label { color: #7986cb !important; }
         .stat-value { color: #1a1a2e !important; }
         .stat-sub   { color: #9fa8da !important; }
-        .stat-icon  { opacity: 0.08 !important; }
+        .stat-icon  { opacity: 0.06 !important; color: #1a1a2e !important; }
         .video-card { background: #ffffff !important; border-color: #c5cae9 !important; box-shadow: 0 2px 12px rgba(0,0,0,0.06) !important; }
         .vc-title   { color: #1a1a2e !important; }
         .vc-channel { color: #7986cb !important; }
@@ -121,10 +125,14 @@ def apply_theme():
         .stButton > button { background: linear-gradient(135deg,#3f51b5,#5c6bc0) !important; color: #fff !important; }
         /* Alerts, dataframe */
         [data-testid="stAlert"] { background: #e8eaf6 !important; color: #1a1a2e !important; border-color: #c5cae9 !important; }
-        [data-testid="stDataFrame"] { background: #ffffff !important; }
-        [data-testid="stDataFrame"] * { background: #ffffff !important; color: #1a1a2e !important; }
-        [data-testid="stDataFrame"] th { background: #e8eaf6 !important; color: #3f51b5 !important; }
-        [data-testid="stDataFrame"] tr:hover td { background: #f0f2f8 !important; }
+        [data-testid="stDataFrame"] { background: #ffffff !important; border-radius: 12px !important; }
+        [data-testid="stDataFrame"] * { background-color: #ffffff !important; color: #1a1a2e !important; border-color: #e8eaf6 !important; }
+        [data-testid="stDataFrame"] th,
+        [data-testid="stDataFrame"] [role="columnheader"] { background-color: #e8eaf6 !important; color: #3f51b5 !important; font-weight: 700 !important; }
+        [data-testid="stDataFrame"] td,
+        [data-testid="stDataFrame"] [role="gridcell"] { background-color: #ffffff !important; color: #1a1a2e !important; }
+        [data-testid="stDataFrame"] tr:hover td { background-color: #f0f2f8 !important; }
+        .dvn-scroller { background: #ffffff !important; }
         [data-testid="stMarkdownContainer"] p { color: #3a3a5e !important; }
         .stCaption { color: #7986cb !important; }
         hr { border-color: #c5cae9 !important; }
@@ -159,12 +167,16 @@ header[data-testid="stHeader"] {
 [data-testid="manage-app-button"] { display: none !important; visibility: hidden !important; }
 button[data-testid="manage-app-button"] { display: none !important; }
 [class*="manage"] { display: none !important; }
+[class*="viewerBadge"] { display: none !important; }
 [title="Manage app"] { display: none !important; }
 iframe[title="streamlit_app"] { border: none !important; }
 .reportview-container .main footer { display: none !important; }
 footer, footer * { display: none !important; visibility: hidden !important; }
-.viewerBadge_container__r5tak { display: none !important; }
 [data-testid="stBottom"] { display: none !important; }
+/* Streamlit branding */
+#stDecoration { display: none !important; }
+[class^="styles_viewerBadge"] { display: none !important; }
+.styles_viewerBadge__CvC9N { display: none !important; }
 
 /* ── GLOBAL ── */
 html, body, .stApp, .main, .block-container {
@@ -284,9 +296,26 @@ div[data-testid="stRadio"] label, div[data-testid="stRadio"] p { color: #e8e8f0 
 
 /* ── DATAFRAME ── */
 [data-testid="stDataFrame"] { border-radius: 12px !important; overflow: hidden !important; }
-[data-testid="stDataFrame"] * { background: #0f0f1a !important; color: #e8e8f0 !important; }
-[data-testid="stDataFrame"] th { background: #1a1a2e !important; color: #aaaacc !important; font-weight: 600 !important; }
-[data-testid="stDataFrame"] tr:hover td { background: #1a1a2e !important; }
+[data-testid="stDataFrame"] * { 
+    background-color: #0f0f1a !important; 
+    color: #e8e8f0 !important;
+    border-color: #1e1e2e !important;
+}
+[data-testid="stDataFrame"] th,
+[data-testid="stDataFrame"] [role="columnheader"] { 
+    background-color: #1a1a2e !important; 
+    color: #9c93ff !important; 
+    font-weight: 700 !important;
+}
+[data-testid="stDataFrame"] td,
+[data-testid="stDataFrame"] [role="gridcell"] { 
+    background-color: #0f0f1a !important; 
+    color: #e8e8f0 !important;
+}
+[data-testid="stDataFrame"] tr:hover td { background-color: #1a1a2e !important; }
+/* iframe ichidagi dataframe */
+[data-testid="stDataFrame"] iframe { background: #0f0f1a !important; }
+.dvn-scroller { background: #0f0f1a !important; }
 
 /* ── ALERTS ── */
 [data-testid="stAlert"] { background: #1a1a2e !important; border-radius: 10px !important; color: #e8e8f0 !important; border: 1px solid #2a2a4a !important; }
@@ -575,14 +604,14 @@ def save_code(code, tg_id, order_id, note="", days=30):
 def activate_by_code(code, uid):
     db = load_db(); codes = db.get("activation_codes",{})
     code = code.strip().upper()
-    if code not in codes: return False,"❌ Код топилмади."
+    if code not in codes: return False,"❌ Kod topilmadi."
     c = codes[code]
-    if c.get("used"):    return False,"❌ Бу код аллақачон ишлатилган."
+    if c.get("used"):    return False,"❌ Bu kod allaqachon ishlatilgan."
     if datetime.now() > datetime.fromisoformat(c["expires"]): return False,"❌ Код муддати тугаган."
     activate_sub(uid, code)
     codes[code].update({"used":True,"used_by":uid,"used_at":datetime.now().isoformat()})
     db["activation_codes"] = codes; save_db(db)
-    return True,"✅ Обуна муваффақиятли фаоллашди!"
+    return True,"✅ Obuna muvaffaqiyatli faollashdi!"
 
 # ══════════════════════════════════════════
 # PAYMENT URLS
@@ -615,8 +644,8 @@ def start_bot():
         bot.send_message(msg.chat.id,
             f"👋 *Viral 777 Analytics*га хуш келибсиз!\n\n"
             f"🔥 YouTube вирал таҳлил платформаси\n\n"
-            f"💰 *Ойлик обуна:* `{SUBSCRIPTION_PRICE:,} сўм`\n"
-            f"📅 30 кун · ♾️ Чексиз қидирув · 📊 Тренд таҳлили\n\n"
+            f"💰 *Ойлик обуна:* `{SUBSCRIPTION_PRICE:,} so'm`\n"
+            f"📅 30 kun · ♾️ Cheksiz qidiruv · 📊 Trend tahlili\n\n"
             f"Тўловни амалга ошириб, *\"Тўлов қилдим\"* тугмасини босинг:",
             parse_mode="Markdown", reply_markup=mk)
 
@@ -638,7 +667,7 @@ def start_bot():
             try:
                 bot.send_message(int(ADMIN_CHAT_ID),
                     f"💰 *Янги тўлов!*\n👤 {call.from_user.first_name} (`{tg_id}`)\n"
-                    f"📋 `{oid}`\n🔑 `{code}`\n💵 {SUBSCRIPTION_PRICE:,} сўм\n"
+                    f"📋 `{oid}`\n🔑 `{code}`\n💵 {SUBSCRIPTION_PRICE:,} so'm\n"
                     f"🕐 {datetime.now().strftime('%d.%m.%Y %H:%M')}",
                     parse_mode="Markdown")
             except: pass
@@ -698,7 +727,7 @@ def uzb_date(iso):
         now=datetime.utcnow(); diff=now-dt
         if diff.days==0:    return "Бугун"
         if diff.days==1:    return "Кеча"
-        if diff.days<7:     return f"{diff.days} кун олdin"
+        if diff.days<7:     return f"{diff.days} kun олdin"
         if diff.days<30:    return f"{diff.days//7} ҳафта олdin"
         if diff.days<365:   return f"{diff.days//30} ой олdin"
         return f"{dt.day} {M[dt.month]} {dt.year}"
@@ -737,6 +766,10 @@ for k,v in [("authenticated",False),("results",None),
              ("dark_mode",True),("current_topic","Survival")]:
     if k not in st.session_state: st.session_state[k]=v
 
+# Admin login ni query_params orqali saqlaymiz
+if st.query_params.get("admin_auth","") == "ok":
+    st.session_state.authenticated = True
+
 uid = get_uid()
 
 # ══════════════════════════════════════════
@@ -767,12 +800,17 @@ with st.sidebar:
             p_in = st.text_input("Пароль", type="password", key="login_p")
             if st.button("Кириш", key="login_btn"):
                 if ADMIN_DB.get(u_in)==p_in:
-                    st.session_state.authenticated=True; st.rerun()
+                    st.session_state.authenticated=True
+                    st.query_params["admin_auth"]="ok"
+                    st.rerun()
                 else: st.error("❌ Нотўғри!")
     else:
         col1,col2 = st.columns([2,1])
         col1.success("✅ Admin")
-        if col2.button("Чиқиш"): st.session_state.authenticated=False; st.rerun()
+        if col2.button("Чиқиш"):
+            st.session_state.authenticated=False
+            st.query_params.pop("admin_auth", None)
+            st.rerun()
 
     st.divider()
 
@@ -801,12 +839,14 @@ with st.sidebar:
     if api_key and api_key!=saved_key:
         st.query_params["apikey"]=api_key
 
-    st.markdown("**🔍 Мавзу / Ниша**")
+    st.markdown("**🔍 Mavzu / Nisha**")
 
-    # Niche quick select — session_state orqali to'g'ri ishlaydi
+    # Niche quick select
     niche_cols = st.columns(3)
     for i, niche in enumerate(NICHES[:9]):
-        if niche_cols[i%3].button(niche, key=f"n_{niche}", use_container_width=True):
+        btn_style = "primary" if st.session_state.get("current_topic","") == niche else "secondary"
+        if niche_cols[i%3].button(niche, key=f"nb_{niche}", use_container_width=True,
+                                   type=btn_style if btn_style=="primary" else "secondary"):
             st.session_state["current_topic"] = niche
             st.rerun()
 
@@ -815,9 +855,9 @@ with st.sidebar:
         st.session_state["current_topic"] = "Survival"
 
     topic = st.text_input(
-        "Ёки қидирув матнини киритинг:",
+        "Yoki qidiruv matnini kiriting:",
         value=st.session_state["current_topic"],
-        placeholder="Масалан: Survival, Finance...",
+        placeholder="Masalan: Survival, Finance...",
         key="topic_input"
     )
     # Foydalanuvchi o'zi yozsa ham session_state yangilansin
@@ -838,10 +878,10 @@ with st.sidebar:
     region_code  = REGIONS[region_label]
 
     days_sel  = st.select_slider("📅 Давр:", options=[1,7,14,30,60,90,180,365],
-                                  value=30, format_func=lambda x: f"{x} кун")
+                                  value=30, format_func=lambda x: f"{x} kun")
     min_outl  = st.slider("⚡ Min Outlier Score:", 1, 200, 10,
                            help="Вираллик коэффициенти — видео кўришлари / обуначилар")
-    min_views = st.select_slider("👁 Min Кўришлар:",
+    min_views = st.select_slider("👁 Min Ko'rishlar:",
                                   options=[0,1000,10000,50000,100000,500000,1000000],
                                   value=0, format_func=lambda x: fmt(x) if x>0 else "Ҳаммаси")
     max_res   = st.select_slider("📦 Натижалар сони:", options=[10,25,50], value=25)
@@ -853,16 +893,16 @@ with st.sidebar:
 
     if not can_search:
         st.markdown("<div style='text-align:center;margin-top:8px;font-size:12px;color:#555577;'>"
-                    "Обуна сотиб олинг ↓</div>", unsafe_allow_html=True)
+                    "Обуна sotib oling ↓</div>", unsafe_allow_html=True)
 
 # ══════════════════════════════════════════
 # MAIN TABS
 # ══════════════════════════════════════════
 TAB_TREND, TAB_CARDS, TAB_TABLE, TAB_CHART, TAB_HISTORY = st.tabs([
     "🔥 Тренд Таҳлили",
-    "🎬 Видео Карточкалар",
+    "🎬 Video Kartochkalar",
     "📊 Жадвал",
-    "📈 Графиклар",
+    "📈 Grafiklar",
     "🕐 Тарих",
 ])
 
@@ -875,19 +915,19 @@ def show_sub_block(tab_id="main"):
     st.markdown(f"""
     <div class='sub-box'>
         <div style='font-size:48px;margin-bottom:12px;'>🔒</div>
-        <h2 style='color:#fff;font-size:24px;margin-bottom:8px;'>Синов муддати тугади</h2>
+        <h2 style='color:#fff;font-size:24px;margin-bottom:8px;'>Sinov muddati tugadi</h2>
         <p style='color:#888899;font-size:14px;margin-bottom:24px;'>
-            Давом этиш учун <b>Pro обуна</b> сотиб олинг.<br>
-            Тўловдан сўнг Telegram бот активация кодини <b>дарҳол</b> юборади.
+            Davom etish uchun <b>Pro obuna</b> sotib oling.<br>
+            Тўловдан so'ng Telegram бот активация кодини <b>darhol</b> yuboradi.
         </p>
         <div style='font-size:52px;font-weight:900;background:linear-gradient(135deg,#6c63ff,#ff6b6b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:16px 0;'>
-            {SUBSCRIPTION_PRICE:,} сўм
+            {SUBSCRIPTION_PRICE:,} so'm
         </div>
         <p style='color:#444466;font-size:13px;margin-bottom:28px;'>
-            📅 30 кун &nbsp;·&nbsp; ♾️ Чексиз қидирув &nbsp;·&nbsp; 📊 Тренд таҳлили &nbsp;·&nbsp; 📈 Графиклар
+            📅 30 kun &nbsp;·&nbsp; ♾️ Cheksiz qidiruv &nbsp;·&nbsp; 📊 Trend tahlili &nbsp;·&nbsp; 📈 Grafiklar
         </p>
         <a href='{TELEGRAM_BOT_LINK}' target='_blank' class='tg-pay-btn'>
-            ✈️ Telegram орқали тўлаш ва код олиш
+            ✈️ Telegram orqali to'lash va kod olish
         </a>
     </div>
     """, unsafe_allow_html=True)
@@ -895,8 +935,8 @@ def show_sub_block(tab_id="main"):
     st.markdown("""
     <div class='act-box'>
         <div style='font-size:28px;margin-bottom:8px;'>🔑</div>
-        <h4 style='color:#fff;margin-bottom:4px;'>Активация кодини киритинг</h4>
-        <p style='color:#555577;font-size:13px;'>Telegram ботдан олган 6 та белгили код</p>
+        <h4 style='color:#fff;margin-bottom:4px;'>Aktivatsiya kodini kiriting</h4>
+        <p style='color:#555577;font-size:13px;'>Telegram botdan olgan 6 ta belgili kod</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -905,8 +945,8 @@ def show_sub_block(tab_id="main"):
         code = st.text_input("", placeholder="4X9K2M",
                               max_chars=6, key=f"code_inp_{tab_id}",
                               label_visibility="collapsed").strip().upper()
-        if st.button("🔓 КОДНИ ТАСДИҚЛАШ", key=f"code_btn_{tab_id}", use_container_width=True):
-            if len(code)<6: st.error("❌ Код 6 та белгидан иборат!")
+        if st.button("🔓 KODNI TASDIQLASH", key=f"code_btn_{tab_id}", use_container_width=True):
+            if len(code)<6: st.error("❌ Kod 6 ta belgidan iborat!")
             else:
                 ok,msg = activate_by_code(code, uid)
                 if ok: st.success(msg); st.balloons(); time.sleep(1); st.rerun()
@@ -992,19 +1032,19 @@ if search_btn:
                 # Тарих — UTC ни UZ вақтга ўтказиш (+5)
                 now_uz = datetime.utcnow() + timedelta(hours=5)
                 st.session_state.history.append({
-                    "Вақт":    now_uz.strftime("%H:%M"),
-                    "Сана":    now_uz.strftime("%d.%m"),
-                    "Мавзу":   topic,
-                    "Бозор":   region_label,
-                    "Давр":    f"{days_sel} кун",
-                    "Топилди": len(results),
+                    "Vaqt":    now_uz.strftime("%H:%M"),
+                    "Sana":    now_uz.strftime("%d.%m"),
+                    "Mavzu":   topic,
+                    "Bozor":   region_label,
+                    "Davr":    f"{days_sel} kun",
+                    "Topildi": len(results),
                 })
 
                 if not st.session_state.authenticated and not is_subscribed(uid):
                     use_trial(uid)
                     rem = get_trial(uid)
-                    if rem>0: st.toast(f"🎁 Яна {rem} та текин қидирув қолди")
-                    else:     st.toast("⚠️ Охирги синов ишлатилди!")
+                    if rem>0: st.toast(f"🎁 Yana {rem} ta tekin qidiruv qoldi")
+                    else:     st.toast("⚠️ Oxirgi sinov ishlatildi!")
 
             except Exception as e:
                 st.error(f"⚠️ Хато: {e}")
@@ -1024,17 +1064,17 @@ with TAB_TREND:
         <div style='text-align:center;padding:60px 20px;'>
             <div style='font-size:64px;margin-bottom:16px;'>🔥</div>
             <h2 style='color:#fff;font-size:28px;margin-bottom:12px;'>
-                YouTube Тренд Таҳлилчиси
+                YouTube Trend Tahlilchisi
             </h2>
             <p style='color:#555577;font-size:16px;max-width:500px;margin:0 auto 32px;'>
                 Чap панелдан мавзу ва параметрларни танланг,<br>
-                сўнг <b>"Таҳлилни бошлаш"</b> тугмасини босинг.
+                so'ng <b>"Таҳлилни бошлаш"</b> tugmasini bosing.
             </p>
         </div>
         """, unsafe_allow_html=True)
 
         # Quick niches
-        st.markdown("<div class='section-title'>⚡ Тез Қидирув — Машҳур Нишалар</div>",
+        st.markdown("<div class='section-title'>⚡ Tez Qidiruv — Mashhur Nishalar</div>",
                     unsafe_allow_html=True)
         nc = st.columns(6)
         niche_emojis = {"Survival":"🏕️","Cooking":"🍳","Finance":"💰","Gaming":"🎮",
@@ -1055,37 +1095,37 @@ with TAB_TREND:
         top_channel = df.iloc[0]['channel']
 
         # ── Top KPI ──
-        st.markdown(f"<div class='section-title'>📊 <b>{topic}</b> Нишаси — Умумий Таҳлил "
-                    f"<span>({len(df)} та вирал видео топилди)</span></div>",
+        st.markdown(f"<div class='section-title'>📊 <b>{topic}</b> Nishasi — Umumiy Tahlil "
+                    f"<span>({len(df)} ta viral video topildi)</span></div>",
                     unsafe_allow_html=True)
 
         k1,k2,k3,k4 = st.columns(4)
         k1.markdown(f"""<div class='stat-card purple'>
             <div class='stat-icon'>⚡</div>
-            <div class='stat-label'>O'rtacha Viral Score</div>
+            <div class='stat-label'>O'RTACHA VIRAL SCORE</div>
             <div class='stat-value'>{avg_outl}x</div>
-            <div class='stat-sub'>Обуначиларга нисбатан</div>
+            <div class='stat-sub'>Obunachilarga nisbatan</div>
         </div>""", unsafe_allow_html=True)
 
         k2.markdown(f"""<div class='stat-card red'>
             <div class='stat-icon'>👁</div>
-            <div class='stat-label'>Жами Кўришлар</div>
+            <div class='stat-label'>Jami Ko'rishlar</div>
             <div class='stat-value'>{fmt(total_views)}</div>
-            <div class='stat-sub'>{days_sel} кундаги натижа</div>
+            <div class='stat-sub'>{days_sel} kunlik natija</div>
         </div>""", unsafe_allow_html=True)
 
         k3.markdown(f"""<div class='stat-card gold'>
             <div class='stat-icon'>🔥</div>
-            <div class='stat-label'>Eng Yuqori Score</div>
+            <div class='stat-label'>ENG YUQORI SCORE</div>
             <div class='stat-value'>{max_outl}x</div>
-            <div class='stat-sub'>Мега вирал</div>
+            <div class='stat-sub'>Mega viral</div>
         </div>""", unsafe_allow_html=True)
 
         k4.markdown(f"""<div class='stat-card green'>
             <div class='stat-icon'>📺</div>
-            <div class='stat-label'>Top Канал</div>
+            <div class='stat-label'>TOP KANAL</div>
             <div class='stat-value' style='font-size:16px;'>{top_channel[:16]}...</div>
-            <div class='stat-sub'>Энг вирал канал</div>
+            <div class='stat-sub'>Eng viral kanal</div>
         </div>""", unsafe_allow_html=True)
 
         st.markdown("<br>", unsafe_allow_html=True)
@@ -1097,7 +1137,7 @@ with TAB_TREND:
             fig_gauge = go.Figure(go.Indicator(
                 mode="gauge+number",
                 value=avg_outl,
-                title={'text': "Ниша Куч Коэффициенти", 'font':{'color':'#aaaacc','size':13}},
+                title={'text': "Nisha Kuch Koeffitsienti", 'font':{'color':'#aaaacc','size':12}},
                 number={'font':{'color':'#ffffff','size':40},'suffix':'x'},
                 gauge={
                     'axis':{'range':[0, max(200, avg_outl*1.5)],
@@ -1143,7 +1183,7 @@ with TAB_TREND:
             st.plotly_chart(fig_bar, use_container_width=True)
 
         # ── Top 3 Highlight ──
-        st.markdown("<div class='section-title'>🏆 Энг Вирал Видеолар</div>",
+        st.markdown("<div class='section-title'>🏆 Eng Viral Videolar</div>",
                     unsafe_allow_html=True)
         top3 = df.head(3)
         cols = st.columns(3)
@@ -1165,7 +1205,7 @@ with TAB_TREND:
                             </div>
                             <div class='vc-stat'>
                                 <span class='vc-stat-val'>{fmt(row['views'])}</span>
-                                <span class='vc-stat-lbl'>Кўришлар</span>
+                                <span class='vc-stat-lbl'>Ko'rishlar</span>
                             </div>
                             <div class='vc-stat'>
                                 <span class='vc-stat-val'>{fmt(row['subs'])}</span>
@@ -1180,22 +1220,22 @@ with TAB_TREND:
                 """, unsafe_allow_html=True)
 
         # ── Channels analysis ──
-        st.markdown("<div class='section-title'>📺 Энг Фаол Каналлар</div>",
+        st.markdown("<div class='section-title'>📺 Eng Faol Kanallar</div>",
                     unsafe_allow_html=True)
         ch_stats = df.groupby('channel').agg(
-            Видеолар=('id','count'),
-            Ўртача_Score=('outlier','mean'),
-            Жами_Кўришлар=('views','sum')
-        ).round(1).sort_values('Ўртача_Score',ascending=False).head(10)
-        ch_stats['Жами_Кўришлар'] = ch_stats['Жами_Кўришлар'].apply(fmt)
+            Videolar=('id','count'),
+            Urtacha_Score=('outlier','mean'),
+            Jami_Korishlar=('views','sum')
+        ).round(1).sort_values('Urtacha_Score',ascending=False).head(10)
+        ch_stats['Jami_Korishlar'] = ch_stats['Jami_Korishlar'].apply(fmt)
 
         fig_ch = px.scatter(
             ch_stats.reset_index(),
-            x='Видеолар', y='Ўртача_Score',
-            size='Видеолар', color='Ўртача_Score',
+            x='Videolar', y='Urtacha_Score',
+            size='Videolar', color='Urtacha_Score',
             hover_name='channel',
             color_continuous_scale=['#2a2a58','#6c63ff','#ff4757'],
-            labels={'Ўртача_Score':'Ўртача Viral Score','Видеолар':'Видеолар сони'},
+            labels={'Urtacha_Score':'Urtacha Viral Score','Videolar':'Videolar сони'},
             size_max=40,
         )
         fig_ch.update_layout(
@@ -1217,19 +1257,19 @@ with TAB_CARDS:
     if need_sub2:
         show_sub_block("cards")
     elif not st.session_state.results:
-        st.info("🔍 Аввал чап панелдан қидирув бошланг.")
+        st.info("🔍 Avval chap paneldan qidiruv boshlang.")
     else:
         df = pd.DataFrame(st.session_state.results)
         # Filter controls
         fc1,fc2,fc3 = st.columns(3)
-        sort_by  = fc1.selectbox("Саралаш:", ["Viral Score","Кўришлар","Лайклар"], key="sort_c")
+        sort_by  = fc1.selectbox("Saralash:", ["Viral Score","Ko'rishlar","Layklar"], key="sort_c")
         min_s    = fc2.slider("Min Score:", 0, int(df['outlier'].max()+1), 0, key="min_s")
-        cols_cnt = fc3.select_slider("Устунлар:", [2,3,4], value=3, key="cols_c")
+        cols_cnt = fc3.select_slider("Ustunlar:", [2,3,4], value=3, key="cols_c")
 
-        sort_map = {"Viral Score":"outlier","Кўришлар":"views","Лайклар":"likes"}
+        sort_map = {"Viral Score":"outlier","Ko'rishlar":"views","Layklar":"likes"}
         filtered = df[df['outlier']>=min_s].sort_values(sort_map[sort_by],ascending=False)
 
-        st.caption(f"Кўрсатилмоқда: {len(filtered)} та видео")
+        st.caption(f"Ko'rsatilmoqda: {len(filtered)} ta video")
 
         rows = [filtered.iloc[i:i+cols_cnt] for i in range(0,len(filtered),cols_cnt)]
         for row_df in rows:
@@ -1253,7 +1293,7 @@ with TAB_CARDS:
                                 </div>
                                 <div class='vc-stat'>
                                     <span class='vc-stat-val'>{fmt(row['views'])}</span>
-                                    <span class='vc-stat-lbl'>Кўришлар</span>
+                                    <span class='vc-stat-lbl'>Ko'rishlar</span>
                                 </div>
                                 <div class='vc-stat'>
                                     <span class='vc-stat-val'>{engage}%</span>
@@ -1278,40 +1318,50 @@ with TAB_TABLE:
     if need_sub3:
         show_sub_block("table")
     elif not st.session_state.results:
-        st.info("🔍 Аввал чап панелдан қидирув бошланг.")
+        st.info("🔍 Avval chap paneldan qidiruv boshlang.")
     else:
         df = pd.DataFrame(st.session_state.results)
         df_show = df.copy()
-        df_show['Кўришлар']  = df_show['views'].apply(fmt)
-        df_show['Обуначи']   = df_show['subs'].apply(fmt)
-        df_show['Лайклар']   = df_show['likes'].apply(fmt)
-        df_show['Изоҳлар']   = df_show['comments'].apply(fmt)
-        df_show['Сана']      = df_show['published'].apply(uzb_date)
-        df_show['Score']     = df_show['outlier']
-        df_show['Engage%']   = (
+        df_show["Ko'rishlar"] = df_show['views'].apply(fmt)
+        df_show["Obunachi"]   = df_show['subs'].apply(fmt)
+        df_show["Layklar"]    = df_show['likes'].apply(fmt)
+        df_show["Izohlar"]    = df_show['comments'].apply(fmt)
+        df_show["Sana"]       = df_show['published'].apply(uzb_date)
+        df_show["Score"]      = df_show['outlier']
+        df_show["Engage%"]    = (
             (df_show['likes']+df_show['comments'])/df_show['views'].clip(lower=1)*100
         ).round(2)
 
+        st.markdown(f"<div class='section-title'>📊 Jadval <span>{len(df_show)} ta video</span></div>",
+                    unsafe_allow_html=True)
+
         st.dataframe(
-            df_show[['thumbnail','title','channel','Score','Кўришлар',
-                      'Обуначи','Лайклар','Engage%','Сана','url']],
+            df_show[["thumbnail","title","channel","Score",
+                      "Ko'rishlar","Obunachi","Layklar","Engage%","Sana","url"]],
             column_config={
-                "thumbnail": st.column_config.ImageColumn("🖼", width="small"),
-                "title":     st.column_config.TextColumn("Сарлавҳа", width="large"),
-                "channel":   st.column_config.TextColumn("Канал"),
-                "Score":     st.column_config.NumberColumn("⚡ Score", format="%.1fx"),
-                "Engage%":   st.column_config.NumberColumn("💬 Engage", format="%.2f%%"),
-                "url":       st.column_config.LinkColumn("🔗 Havola", display_text="▶ Ko'rish"),
+                "thumbnail":   st.column_config.ImageColumn("🖼", width="small"),
+                "title":       st.column_config.TextColumn("Sarlavha", width="large"),
+                "channel":     st.column_config.TextColumn("Kanal"),
+                "Score":       st.column_config.NumberColumn("⚡ Score", format="%.1fx"),
+                "Ko'rishlar":  st.column_config.TextColumn("👁 Ko'rishlar"),
+                "Obunachi":    st.column_config.TextColumn("👥 Obunachi"),
+                "Layklar":     st.column_config.TextColumn("👍 Layklar"),
+                "Engage%":     st.column_config.NumberColumn("💬 Engage%", format="%.2f%%"),
+                "Sana":        st.column_config.TextColumn("📅 Sana"),
+                "url":         st.column_config.LinkColumn("🔗 Havola", display_text="▶ Ko'rish"),
             },
-            use_container_width=True, hide_index=True,
-            height=min(60+len(df_show)*36, 700)
+            use_container_width=True,
+            hide_index=True,
+            height=min(80+len(df_show)*40, 700)
         )
 
-        # CSV export
         _topic_name = st.session_state.get("last_topic","result")
-        csv = df_show[['title','channel','Score','views','subs','likes','comments','url']].to_csv(index=False)
-        st.download_button("⬇️ CSV да юклаш", csv, f"viral777_{_topic_name}_{datetime.now().strftime('%Y%m%d')}.csv",
-                           "text/csv", use_container_width=True)
+        csv = df_show[["title","channel","Score","views","subs","likes","comments","url"]].to_csv(index=False)
+        st.download_button(
+            "⬇️ CSV yuklab olish", csv,
+            f"viral777_{_topic_name}_{datetime.now().strftime('%Y%m%d')}.csv",
+            "text/csv", use_container_width=True
+        )
 
 # ══════════════════════════════════════════
 # TAB 4: CHARTS
@@ -1322,7 +1372,7 @@ with TAB_CHART:
     if need_sub4:
         show_sub_block("charts")
     elif not st.session_state.results:
-        st.info("🔍 Аввал чап панелдан қидирув бошланг.")
+        st.info("🔍 Avval chap paneldan qidiruv boshlang.")
     else:
         df = pd.DataFrame(st.session_state.results)
 
@@ -1330,7 +1380,7 @@ with TAB_CHART:
 
         # Views vs Outlier scatter
         with ch1:
-            st.markdown("<div class='section-title'>👁 Кўришлар vs Viral Score</div>",
+            st.markdown("<div class='section-title'>👁 Ko'rishlar vs Viral Score</div>",
                         unsafe_allow_html=True)
             fig1 = px.scatter(
                 df, x='views', y='outlier',
@@ -1338,7 +1388,7 @@ with TAB_CHART:
                 hover_name='title',
                 hover_data={'channel':True,'views':':,.0f','outlier':':.1f'},
                 color_continuous_scale=['#2a2a58','#6c63ff','#ff4757'],
-                labels={'views':'Кўришлар','outlier':'Viral Score'},
+                labels={'views':'Ko\'rishlar','outlier':'Viral Score'},
                 size_max=30, log_x=True,
             )
             fig1.update_layout(
@@ -1353,12 +1403,12 @@ with TAB_CHART:
 
         # Score distribution
         with ch2:
-            st.markdown("<div class='section-title'>📊 Viral Score Тарқалиши</div>",
+            st.markdown("<div class='section-title'>📊 Viral Score Distribution</div>",
                         unsafe_allow_html=True)
             fig2 = px.histogram(
                 df, x='outlier', nbins=20,
                 color_discrete_sequence=['#6c63ff'],
-                labels={'outlier':'Viral Score','count':'Видеолар сони'},
+                labels={'outlier':'Viral Score','count':"Videolar soni"},
             )
             fig2.update_layout(
                 paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
@@ -1375,14 +1425,14 @@ with TAB_CHART:
 
         # Top channels bar
         with ch3:
-            st.markdown("<div class='section-title'>📺 Энг Кўп Видео Чиқарган Каналлар</div>",
+            st.markdown("<div class='section-title'>📺 Eng Ko'p Video Chiqqan Kanallar</div>",
                         unsafe_allow_html=True)
             ch_cnt = df.groupby('channel').size().sort_values(ascending=False).head(10)
             fig3 = px.bar(
                 x=ch_cnt.values, y=ch_cnt.index, orientation='h',
                 color=ch_cnt.values,
                 color_continuous_scale=['#2a2a58','#6c63ff'],
-                labels={'x':'Видеолар сони','y':''},
+                labels={'x':"Videolar soni",'y':''},
             )
             fig3.update_layout(
                 paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
@@ -1396,7 +1446,7 @@ with TAB_CHART:
 
         # Engagement
         with ch4:
-            st.markdown("<div class='section-title'>💬 Engagement Rate Таҳлили</div>",
+            st.markdown("<div class='section-title'>💬 Engagement Rate Tahlili</div>",
                         unsafe_allow_html=True)
             df['engage'] = ((df['likes']+df['comments'])/df['views'].clip(lower=1)*100).round(2)
             fig4 = px.box(
@@ -1417,12 +1467,28 @@ with TAB_CHART:
 # ══════════════════════════════════════════
 with TAB_HISTORY:
     if st.session_state.history:
-        st.markdown("<div class='section-title'>🕐 Қидирув Тарихи</div>",
+        st.markdown("<div class='section-title'>🕐 Qidiruv Tarixi</div>",
                     unsafe_allow_html=True)
         hist_df = pd.DataFrame(st.session_state.history).iloc[::-1]
-        st.dataframe(hist_df, use_container_width=True, hide_index=True)
-
-        if st.button("🗑 Тарихни тозалаш"):
+        # Ustun nomlarini lotin harfiga o'tkazish
+        hist_df.columns = [c.replace("Вақт","Vaqt").replace("Сана","Sana")
+                            .replace("Мавзу","Mavzu").replace("Бозор","Bozor")
+                            .replace("Давр","Davr").replace("Топилди","Topildi")
+                            for c in hist_df.columns]
+        st.dataframe(
+            hist_df,
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                "Vaqt":    st.column_config.TextColumn("🕐 Vaqt"),
+                "Sana":    st.column_config.TextColumn("📅 Sana"),
+                "Mavzu":   st.column_config.TextColumn("🔍 Mavzu"),
+                "Bozor":   st.column_config.TextColumn("🌍 Bozor"),
+                "Davr":    st.column_config.TextColumn("📆 Davr"),
+                "Topildi": st.column_config.NumberColumn("📊 Topildi"),
+            }
+        )
+        if st.button("🗑 Tarixni tozalash"):
             st.session_state.history=[]; st.rerun()
     else:
-        st.info("🕐 Ҳали қидирув амалга оширилмаган.")
+        st.info("🔍 Hali qidiruv amalga oshirilmagan.")
