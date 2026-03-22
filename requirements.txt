@@ -1,6 +1,5 @@
 streamlit
 google-api-python-client
 pandas
-isodate
-xlsxwriter
+pyTelegramBotAPI
 plotly
