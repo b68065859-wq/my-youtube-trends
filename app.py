@@ -794,24 +794,35 @@ with st.sidebar:
 
     st.divider()
 
-    # API Key
-    saved_key = st.query_params.get("apikey","")
-    with st.expander("🔑 YouTube API Key" + (" ✅" if saved_key else " ❗"), expanded=not bool(saved_key)):
+    # API Key — bir nechta key qo'llab-quvvatlaydi
+    saved_keys_raw = st.query_params.get("apikeys","")
+    saved_key      = st.query_params.get("apikey","")
+
+    with st.expander("🔑 YouTube API Key" + (" ✅" if (saved_keys_raw or saved_key) else " ❗"),
+                     expanded=not bool(saved_keys_raw or saved_key)):
         st.markdown("""
-**API Key olish:**
+**API Key olish:** [console.cloud.google.com](https://console.cloud.google.com)
+→ New Project → APIs & Services → YouTube Data API v3 → Enable
+→ Credentials → API Key → Nusxalang ✅
 
-1. 🌐 [console.cloud.google.com](https://console.cloud.google.com)
-2. ➕ New Project → Create
-3. APIs & Services → Library → **YouTube Data API v3** → Enable
-4. Credentials → + Create Credentials → **API Key**
-5. Kalitni nusxalab quyidagi maydonga joylashtiring ✅
-
-⚠️ *Bepul: kuniga 10,000 so'rov*
+💡 *Bir nechta key kiritsangiz — biri tugasa avtomatik keyingisiga o'tadi!*
         """)
-    api_key = st.text_input("API Key:", value=saved_key, type="password",
-                             placeholder="AIzaSy...", label_visibility="collapsed")
+
+    api_key = st.text_input(
+        "API Key 1:", value=saved_key, type="password",
+        placeholder="AIzaSy...", label_visibility="visible", key="ak1")
+    api_key2 = st.text_input(
+        "API Key 2 (ixtiyoriy):", value="", type="password",
+        placeholder="AIzaSy...", label_visibility="visible", key="ak2")
+    api_key3 = st.text_input(
+        "API Key 3 (ixtiyoriy):", value="", type="password",
+        placeholder="AIzaSy...", label_visibility="visible", key="ak3")
+
     if api_key and api_key != saved_key:
         st.query_params["apikey"] = api_key
+
+    # Barcha keylarni birlashtiramiz (bo'sh bo'lmaganlarni)
+    _all_keys = [k.strip() for k in [api_key, api_key2, api_key3] if k and k.strip()]
 
     st.markdown("**🔍 Mavzu / Nisha**")
 
@@ -924,24 +935,50 @@ if st.session_state.get("do_search", False):
 
 if _trigger:
     topic = st.session_state.get("current_topic", "Survival")
-    current_key = st.query_params.get("apikey","") or api_key
-    if not current_key:
+    # Key rotation — biri quota tugasa keyingisini ishlatadi
+    _saved_key  = st.query_params.get("apikey","") or api_key
+    _all_keys_search = [k for k in _all_keys if k] if _all_keys else ([_saved_key] if _saved_key else [])
+
+    if not _all_keys_search:
         st.error("‼️ YouTube API Key kiritilmagan!")
     else:
         with st.spinner("🔍 YouTube ma'lumotlari tahlil qilinmoqda..."):
-            try:
-                yt = googleapiclient.discovery.build("youtube","v3",developerKey=current_key)
-                pub_after = (datetime.utcnow()-timedelta(days=days_sel)).isoformat()+"Z"
-                # relevanceLanguage — mahalliy til natijalar uchun
-                _lang = REGION_LANG.get(region_code, "en")
-                res = yt.search().list(
-                    q=topic, part="snippet", type="video",
-                    maxResults=max_res, order="viewCount",
-                    publishedAfter=pub_after,
-                    regionCode=region_code,
-                    relevanceLanguage=_lang
-                ).execute()
+            _res = None
+            _used_key = None
+            _key_error = None
 
+            for _try_key in _all_keys_search:
+                try:
+                    yt = googleapiclient.discovery.build("youtube","v3",developerKey=_try_key)
+                    pub_after = (datetime.utcnow()-timedelta(days=days_sel)).isoformat()+"Z"
+                    _lang = REGION_LANG.get(region_code, "en")
+                    _res = yt.search().list(
+                        q=topic, part="snippet", type="video",
+                        maxResults=max_res, order="viewCount",
+                        publishedAfter=pub_after,
+                        regionCode=region_code,
+                        relevanceLanguage=_lang
+                    ).execute()
+                    _used_key = _try_key
+                    break  # Muvaffaqiyatli — keyingi key kerak emas
+                except Exception as _e:
+                    err_str = str(_e)
+                    if "quotaExceeded" in err_str or "403" in err_str:
+                        _key_error = f"⚠️ Key quota tugadi, keyingisi sinab ko'rilmoqda..."
+                        continue  # Keyingi keyni sinab ko'r
+                    else:
+                        _key_error = f"⚠️ Xato: {_e}"
+                        break
+
+            if _res is None:
+                if _key_error and "quotaExceeded" in str(_key_error):
+                    st.error("❌ Barcha API keylarning quotasi tugagan! Ertaga yoki yangi key bilan urinib ko'ring.")
+                else:
+                    st.error(_key_error or "❌ Noma'lum xato")
+            else:
+                if _key_error:
+                    st.info("ℹ️ Avvalgi key quota tugagan, zaxira key ishlatildi.")
+                res = _res
                 results = []
                 vid_ids = [item['id']['videoId'] for item in res.get('items',[])]
                 ch_ids  = [item['snippet']['channelId'] for item in res.get('items',[])]
@@ -1020,8 +1057,7 @@ if _trigger:
                     if rem>0: st.toast(f"🎁 Yana {rem} ta tekin qidiruv qoldi")
                     else:     st.toast("⚠️ Oxirgi sinov ishlatildi!")
 
-            except Exception as e:
-                st.error(f"⚠️ Xato: {e}")
+
 
 # ══════════════════════════════════════════
 # TAB 1: TREND
