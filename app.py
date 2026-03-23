@@ -1059,15 +1059,26 @@ with st.sidebar:
 # ══════════════════════════════════════════
 # MAIN TABS
 # ══════════════════════════════════════════
-TAB_TREND, TAB_CARDS, TAB_TABLE, TAB_CHART, TAB_HISTORY, TAB_GUIDE, TAB_ADMIN = st.tabs([
+# Admin tab faqat admin uchun ko'rinadi
+_tab_labels = [
     "🔥 Trend Tahlili",
     "🎬 Video Kartochkalar",
     "📊 Jadval",
     "📈 Grafiklar",
     "🕐 Tarix",
     "📖 Qo\'llanma",
-    "🛡️ Admin",
-])
+]
+if st.session_state.authenticated:
+    _tab_labels.append("🛡️ Admin")
+
+_tabs = st.tabs(_tab_labels)
+TAB_TREND   = _tabs[0]
+TAB_CARDS   = _tabs[1]
+TAB_TABLE   = _tabs[2]
+TAB_CHART   = _tabs[3]
+TAB_HISTORY = _tabs[4]
+TAB_GUIDE   = _tabs[5]
+TAB_ADMIN   = _tabs[6] if st.session_state.authenticated else None
 
 # ══════════════════════════════════════════
 # SUBSCRIPTION BLOCK
@@ -1797,7 +1808,8 @@ with TAB_GUIDE:
 # ══════════════════════════════════════════
 # TAB 7: ADMIN PANEL
 # ══════════════════════════════════════════
-with TAB_ADMIN:
+if TAB_ADMIN is not None:
+ with TAB_ADMIN:
     if not st.session_state.authenticated:
         st.warning("🔒 Bu bo\'lim faqat Admin uchun!")
         st.stop()
