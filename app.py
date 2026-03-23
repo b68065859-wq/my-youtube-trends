@@ -463,25 +463,49 @@ def gen_code():
     return uuid.uuid4().hex[:6].upper()
 
 def save_code(code, tg_id, order_id, note="", days=30):
-    db = load_db()
-    db.setdefault("activation_codes",{})[code] = {
-        "telegram_id":str(tg_id), "order_id":order_id, "note":note,
-        "created":datetime.now().isoformat(),
-        "expires":(datetime.now()+timedelta(days=days)).isoformat(), "used":False
-    }
-    save_db(db)
+    try:
+        db = load_db()
+        db.setdefault("activation_codes",{})[code] = {
+            "telegram_id":str(tg_id), "order_id":order_id, "note":note,
+            "created":datetime.now().isoformat(),
+            "expires":(datetime.now()+timedelta(days=days)).isoformat(), "used":False
+        }
+        save_db(db)
+    except Exception as e:
+        # /tmp mavjud bo'lmasa yangi DB yaratish
+        try:
+            new_db = {"activation_codes":{code:{
+                "telegram_id":str(tg_id), "order_id":order_id, "note":note,
+                "created":datetime.now().isoformat(),
+                "expires":(datetime.now()+timedelta(days=days)).isoformat(), "used":False
+            }}}
+            with open(DB_FILE, "w") as f:
+                json.dump(new_db, f, indent=2)
+        except: pass
 
 def activate_by_code(code, uid):
     db = load_db(); codes = db.get("activation_codes",{})
     code = code.strip().upper()
-    if code not in codes: return False,"❌ Kod topilmadi."
+    # Debug: barcha mavjud kodlarni log qilish
+    if not codes:
+        return False, "❌ Hozircha hech qanday kod mavjud emas. Admin qayta yaratsin."
+    if code not in codes:
+        # Bosh harflar bilan qayta sinab ko'rish
+        code_upper = code.upper()
+        if code_upper not in codes:
+            return False, f"❌ Kod topilmadi. Kodni to'g'ri kiritganingizni tekshiring."
+        code = code_upper
     c = codes[code]
-    if c.get("used"):    return False,"❌ Bu kod allaqachon ishlatilgan."
-    if datetime.now() > datetime.fromisoformat(c["expires"]): return False,"❌ Kod muddati tugagan."
+    if c.get("used"):
+        return False, "❌ Bu kod allaqachon ishlatilgan."
+    if datetime.now() > datetime.fromisoformat(c["expires"]):
+        return False, "❌ Kod muddati tugagan. Admin yangi kod bersin."
+    # Aktivatsiya
     activate_sub(uid, code)
-    codes[code].update({"used":True,"used_by":uid,"used_at":datetime.now().isoformat()})
-    db["activation_codes"] = codes; save_db(db)
-    return True,"✅ Obuna muvaffaqiyatli faollashdi!"
+    codes[code].update({"used":True, "used_by":uid, "used_at":datetime.now().isoformat()})
+    db["activation_codes"] = codes
+    save_db(db)
+    return True, "✅ Obuna muvaffaqiyatli faollashdi!"
 
 # ══════════════════════════════════════════
 # EXCEL YARATISH FUNKSIYASI
@@ -1140,11 +1164,22 @@ def show_sub_block(tab_id="main"):
                               key=f"code_inp_{tab_id}",
                               label_visibility="collapsed").strip().upper()
         if st.button("🔓 KODNI TASDIQLASH", key=f"code_btn_{tab_id}", use_container_width=True):
-            if len(code)<6: st.error("❌ Kod 6 ta belgidan iborat!")
+            if len(code) < 6:
+                st.error("❌ Kod 6 ta belgidan iborat!")
             else:
-                ok,msg = activate_by_code(code, uid)
-                if ok: st.success(msg); st.balloons(); time.sleep(1); st.rerun()
-                else:  st.error(msg)
+                ok, msg = activate_by_code(code, uid)
+                if ok:
+                    st.success(msg)
+                    st.balloons()
+                    time.sleep(1)
+                    st.rerun()
+                else:
+                    st.error(msg)
+                    # DB da nechta kod borligini ko'rsatish (debug)
+                    _db_check = load_db()
+                    _codes_check = _db_check.get("activation_codes", {})
+                    if not _codes_check:
+                        st.warning("⚠️ Server qayta ishga tushgan. Admin yangi kod yaratsin.")
 
 # ══════════════════════════════════════════
 # SEARCH LOGIC
@@ -2009,8 +2044,19 @@ if TAB_ADMIN is not None:
                     "used":        False,
                 }
                 save_db(db)
-                st.success(f"✅ Yangi kod: **`{new_code}`** — {m_days} kun")
-                st.rerun()
+                st.success(f"✅ Yangi kod yaratildi!")
+                st.markdown(
+                    f"<div style='background:#1a1a2e;border:2px solid #6c63ff;"
+                    f"border-radius:12px;padding:20px;text-align:center;margin:10px 0;'>"
+                    f"<div style='color:#555577;font-size:12px;margin-bottom:8px;'>AKTIVATSIYA KODI</div>"
+                    f"<div style='color:#9c93ff;font-size:36px;font-weight:900;letter-spacing:6px;'>"
+                    f"{new_code}</div>"
+                    f"<div style='color:#555577;font-size:12px;margin-top:8px;'>{m_days} kun amal qiladi</div>"
+                    f"</div>",
+                    unsafe_allow_html=True
+                )
+                # session_state ga ham saqlaymiz
+                st.session_state["last_created_code"] = new_code
             else:
                 st.error("❌ Kod yaratib bo'lmadi")
 
