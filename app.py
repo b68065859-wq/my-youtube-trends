@@ -1080,14 +1080,26 @@ with st.sidebar:
 # ══════════════════════════════════════════
 # MAIN TABS
 # ══════════════════════════════════════════
-TAB_TREND, TAB_CARDS, TAB_TABLE, TAB_CHART, TAB_HISTORY, TAB_GUIDE = st.tabs([
+# Admin tab faqat admin uchun
+_tab_labels = [
     "🔥 Trend Tahlili",
     "🎬 Video Kartochkalar",
     "📊 Jadval",
     "📈 Grafiklar",
     "🕐 Tarix",
-    "📖 Qo'llanma",
-])
+    "📖 Qo\'llanma",
+]
+if st.session_state.authenticated:
+    _tab_labels.append("🛡️ Admin")
+
+_tabs = st.tabs(_tab_labels)
+TAB_TREND   = _tabs[0]
+TAB_CARDS   = _tabs[1]
+TAB_TABLE   = _tabs[2]
+TAB_CHART   = _tabs[3]
+TAB_HISTORY = _tabs[4]
+TAB_GUIDE   = _tabs[5]
+TAB_ADMIN   = _tabs[6] if st.session_state.authenticated else None
 
 # ══════════════════════════════════════════
 # SUBSCRIPTION BLOCK
@@ -1824,3 +1836,183 @@ with TAB_GUIDE:
 
     </div>
     """, unsafe_allow_html=True)
+
+
+# ══════════════════════════════════════════
+# TAB 7: ADMIN PANEL
+# ══════════════════════════════════════════
+if TAB_ADMIN is not None:
+    with TAB_ADMIN:
+        if not st.session_state.authenticated:
+            st.warning("🔒 Bu bo'lim faqat Admin uchun!")
+            st.stop()
+
+        st.markdown("<div class='section-title'>🛡️ Admin Boshqaruvi</div>",
+                    unsafe_allow_html=True)
+
+        db  = load_db()
+        now = datetime.now()
+
+        all_users   = {k:v for k,v in db.items()
+                       if k not in ("activation_codes","login_codes")
+                       and isinstance(v, dict) and "subscribed" in v}
+        codes       = db.get("activation_codes", {})
+        login_codes = db.get("login_codes", {})
+
+        active_users = {k:v for k,v in all_users.items()
+                        if v.get("subscribed") and v.get("sub_until") and
+                        datetime.fromisoformat(v["sub_until"]) > now}
+        trial_users  = {k:v for k,v in all_users.items()
+                        if not v.get("subscribed") and v.get("trial_used",0) > 0}
+        used_codes   = {k:v for k,v in codes.items() if v.get("used")}
+        unused_codes = {k:v for k,v in codes.items() if not v.get("used")}
+
+        # KPI kartalar
+        k1,k2,k3,k4,k5 = st.columns(5)
+        for col, label, val, color in [
+            (k1, "Jami Mijozlar",   len(all_users),   "purple"),
+            (k2, "Faol Obuna",      len(active_users), "green"),
+            (k3, "Sinov",           len(trial_users),  "gold"),
+            (k4, "Ishlatilgan Kod", len(used_codes),   "red"),
+            (k5, "Kutayotgan Kod",  len(unused_codes), "purple"),
+        ]:
+            col.markdown(
+                f"<div class='stat-card {color}'>"
+                f"<div class='stat-label'>{label}</div>"
+                f"<div class='stat-value'>{val}</div></div>",
+                unsafe_allow_html=True)
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # Faol obunalar
+        st.markdown("<div class='section-title'>✅ Faol Obunalar</div>",
+                    unsafe_allow_html=True)
+        if active_users:
+            rows = []
+            for uk, ud in active_users.items():
+                sub_dt    = datetime.fromisoformat(ud["sub_until"])
+                days_left = (sub_dt - now).days
+                tg_id     = ud.get("telegram_id", uk[:14]+"...")
+                orders    = ud.get("orders", [])
+                last_ord  = orders[-1].get("date","—")[:10] if orders else "—"
+                plan      = "1 yil" if days_left>300 else ("3 oy" if days_left>60 else "1 oy")
+                rows.append({
+                    "TG / UID":    tg_id,
+                    "Tugaydi":     sub_dt.strftime("%d.%m.%Y"),
+                    "Qoldi (kun)": days_left,
+                    "Reja":        plan,
+                    "Sotib olgan": last_ord,
+                    "Sinov":       str(ud.get("trial_used",0))+"/3",
+                })
+            st.dataframe(pd.DataFrame(rows).sort_values("Qoldi (kun)"),
+                         use_container_width=True, hide_index=True)
+        else:
+            st.info("Hozircha faol obuna yo'q.")
+
+        st.divider()
+
+        # Barcha foydalanuvchilar
+        st.markdown("<div class='section-title'>👥 Barcha Foydalanuvchilar</div>",
+                    unsafe_allow_html=True)
+        all_rows = []
+        for uk, ud in all_users.items():
+            sub_str   = "—"
+            days_left = 0
+            status    = "❌ Yo'q"
+            if ud.get("subscribed") and ud.get("sub_until"):
+                sub_dt    = datetime.fromisoformat(ud["sub_until"])
+                days_left = (sub_dt - now).days
+                sub_str   = sub_dt.strftime("%d.%m.%Y")
+                status    = "✅ Faol" if days_left > 0 else "⏰ Tugagan"
+            elif ud.get("trial_used",0) > 0:
+                status = "🎁 Sinov (" + str(ud.get("trial_used",0)) + "/3)"
+            tg_id = ud.get("telegram_id", uk[:14]+"...")
+            all_rows.append({
+                "TG / UID":  tg_id,
+                "Holat":     status,
+                "Tugaydi":   sub_str,
+                "Kun qoldi": max(0, days_left),
+                "To'lovlar": len(ud.get("orders",[])),
+                "Sinov":     str(ud.get("trial_used",0))+"/3",
+            })
+        if all_rows:
+            st.dataframe(pd.DataFrame(all_rows), use_container_width=True, hide_index=True)
+        else:
+            st.info("Hali hech kim ro'yxatdan o'tmagan.")
+
+        st.divider()
+
+        # Aktivatsiya kodlari
+        st.markdown("<div class='section-title'>🔑 Aktivatsiya Kodlari</div>",
+                    unsafe_allow_html=True)
+        c1, c2 = st.columns(2)
+        c1.metric("Ishlatilgan", len(used_codes))
+        c2.metric("Kutayotgan",  len(unused_codes))
+
+        if unused_codes:
+            code_rows = []
+            for code, cdata in unused_codes.items():
+                exp = datetime.fromisoformat(cdata["expires"])
+                ql  = (exp - now).days
+                code_rows.append({
+                    "Kod":     code,
+                    "TG ID":   cdata.get("telegram_id","—"),
+                    "Tugaydi": exp.strftime("%d.%m.%Y %H:%M"),
+                    "Qoldi":   str(ql)+" kun" if ql > 0 else "Tugagan",
+                })
+            st.dataframe(pd.DataFrame(code_rows),
+                         use_container_width=True, hide_index=True)
+
+        st.divider()
+
+        # Telegram login tarixi
+        if login_codes:
+            st.markdown("<div class='section-title'>✈️ Telegram Login Tarixi</div>",
+                        unsafe_allow_html=True)
+            lg_rows = []
+            for code, cdata in list(login_codes.items())[-20:]:
+                lg_rows.append({
+                    "TG ID": cdata.get("tg_id","—"),
+                    "Ism":   cdata.get("tg_name","—"),
+                    "Vaqt":  cdata.get("created","—")[:16].replace("T"," "),
+                    "Holat": "✅ Ishlatilgan" if cdata.get("used") else "⏳ Kutilmoqda",
+                })
+            if lg_rows:
+                st.dataframe(pd.DataFrame(lg_rows[::-1]),
+                             use_container_width=True, hide_index=True)
+            st.divider()
+
+        # Qo'lda kod yaratish
+        st.markdown("<div class='section-title'>⚡ Qo'lda Kod Yaratish</div>",
+                    unsafe_allow_html=True)
+        m1, m2, m3 = st.columns(3)
+        m_note = m1.text_input("Izoh:", key="adm_note")
+        m_days = m2.number_input("Muddat (kun):", min_value=1, max_value=365,
+                                  value=30, key="adm_days")
+        m_tg   = m3.text_input("TG ID:", key="adm_tg")
+
+        if st.button("🔑 Yangi Kod Yaratish", use_container_width=True, key="adm_gen"):
+            new_code = ""
+            existing = db.get("activation_codes", {})
+            for _ in range(100):
+                c = "".join(random.choices(string.ascii_uppercase + string.digits, k=6))
+                if c not in existing:
+                    new_code = c
+                    break
+            if new_code:
+                db.setdefault("activation_codes", {})[new_code] = {
+                    "telegram_id": m_tg or "manual",
+                    "order_id":    f"MANUAL_{uuid.uuid4().hex[:6].upper()}",
+                    "note":        m_note,
+                    "created":     now.isoformat(),
+                    "expires":     (now + timedelta(days=int(m_days))).isoformat(),
+                    "used":        False,
+                }
+                save_db(db)
+                st.success(f"✅ Yangi kod: **`{new_code}`** — {m_days} kun")
+                st.rerun()
+            else:
+                st.error("❌ Kod yaratib bo'lmadi")
+
+        if st.button("🔄 Yangilash", use_container_width=True, key="adm_refresh"):
+            st.rerun()
