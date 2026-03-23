@@ -682,12 +682,6 @@ NICHES = [
 REGIONS = {"🇺🇸 US":"US","🇬🇧 GB":"GB","🇺🇿 UZ":"UZ",
            "🇷🇺 RU":"RU","🇹🇷 TR":"TR","🇩🇪 DE":"DE","🇯🇵 JP":"JP"}
 
-# Har bir davlat uchun til (relevanceLanguage)
-REGION_LANG = {
-    "US":"en","GB":"en","UZ":"uz","RU":"ru",
-    "TR":"tr","DE":"de","JP":"ja"
-}
-
 # ══════════════════════════════════════════
 # SESSION
 # ══════════════════════════════════════════
@@ -794,35 +788,24 @@ with st.sidebar:
 
     st.divider()
 
-    # API Key — bir nechta key qo'llab-quvvatlaydi
-    saved_keys_raw = st.query_params.get("apikeys","")
-    saved_key      = st.query_params.get("apikey","")
-
-    with st.expander("🔑 YouTube API Key" + (" ✅" if (saved_keys_raw or saved_key) else " ❗"),
-                     expanded=not bool(saved_keys_raw or saved_key)):
+    # API Key
+    saved_key = st.query_params.get("apikey","")
+    with st.expander("🔑 YouTube API Key" + (" ✅" if saved_key else " ❗"), expanded=not bool(saved_key)):
         st.markdown("""
-**API Key olish:** [console.cloud.google.com](https://console.cloud.google.com)
-→ New Project → APIs & Services → YouTube Data API v3 → Enable
-→ Credentials → API Key → Nusxalang ✅
+**API Key olish:**
 
-💡 *Bir nechta key kiritsangiz — biri tugasa avtomatik keyingisiga o'tadi!*
+1. 🌐 [console.cloud.google.com](https://console.cloud.google.com)
+2. ➕ New Project → Create
+3. APIs & Services → Library → **YouTube Data API v3** → Enable
+4. Credentials → + Create Credentials → **API Key**
+5. Kalitni nusxalab quyidagi maydonga joylashtiring ✅
+
+⚠️ *Bepul: kuniga 10,000 so'rov*
         """)
-
-    api_key = st.text_input(
-        "API Key 1:", value=saved_key, type="password",
-        placeholder="AIzaSy...", label_visibility="visible", key="ak1")
-    api_key2 = st.text_input(
-        "API Key 2 (ixtiyoriy):", value="", type="password",
-        placeholder="AIzaSy...", label_visibility="visible", key="ak2")
-    api_key3 = st.text_input(
-        "API Key 3 (ixtiyoriy):", value="", type="password",
-        placeholder="AIzaSy...", label_visibility="visible", key="ak3")
-
+    api_key = st.text_input("API Key:", value=saved_key, type="password",
+                             placeholder="AIzaSy...", label_visibility="collapsed")
     if api_key and api_key != saved_key:
         st.query_params["apikey"] = api_key
-
-    # Barcha keylarni birlashtiramiz (bo'sh bo'lmaganlarni)
-    _all_keys = [k.strip() for k in [api_key, api_key2, api_key3] if k and k.strip()]
 
     st.markdown("**🔍 Mavzu / Nisha**")
 
@@ -847,7 +830,7 @@ with st.sidebar:
     if topic != st.session_state["current_topic"]:
         st.session_state["current_topic"] = topic
 
-    region_label = st.selectbox("🌍 Davlat:", list(REGIONS.keys()))
+    region_label = st.selectbox("🌍 Bozor:", list(REGIONS.keys()))
     region_code  = REGIONS[region_label]
 
     days_sel  = st.select_slider("📅 Davr:", options=[1,7,14,30,60,90,180,365],
@@ -870,14 +853,13 @@ with st.sidebar:
 # ══════════════════════════════════════════
 # MAIN TABS
 # ══════════════════════════════════════════
-TAB_TREND, TAB_CARDS, TAB_TABLE, TAB_CHART, TAB_HISTORY, TAB_GUIDE, TAB_ADMIN = st.tabs([
+TAB_TREND, TAB_CARDS, TAB_TABLE, TAB_CHART, TAB_HISTORY, TAB_GUIDE = st.tabs([
     "🔥 Trend Tahlili",
     "🎬 Video Kartochkalar",
     "📊 Jadval",
     "📈 Grafiklar",
     "🕐 Tarix",
-    "📖 Qo\'llanma",
-    "🛡️ Admin",
+    "📖 Qo'llanma",
 ])
 
 # ══════════════════════════════════════════
@@ -935,55 +917,25 @@ if st.session_state.get("do_search", False):
 
 if _trigger:
     topic = st.session_state.get("current_topic", "Survival")
-    # Key rotation — biri quota tugasa keyingisini ishlatadi
-    _saved_key  = st.query_params.get("apikey","") or api_key
-    _all_keys_search = [k for k in _all_keys if k] if _all_keys else ([_saved_key] if _saved_key else [])
-
-    if not _all_keys_search:
+    current_key = st.query_params.get("apikey","") or api_key
+    if not current_key:
         st.error("‼️ YouTube API Key kiritilmagan!")
     else:
         with st.spinner("🔍 YouTube ma'lumotlari tahlil qilinmoqda..."):
-            _res = None
-            _used_key = None
-            _key_error = None
+            try:
+                yt = googleapiclient.discovery.build("youtube","v3",developerKey=current_key)
+                pub_after = (datetime.utcnow()-timedelta(days=days_sel)).isoformat()+"Z"
+                res = yt.search().list(
+                    q=topic, part="snippet", type="video",
+                    maxResults=max_res, order="viewCount",
+                    publishedAfter=pub_after, regionCode=region_code
+                ).execute()
 
-            for _try_key in _all_keys_search:
-                try:
-                    yt = googleapiclient.discovery.build("youtube","v3",developerKey=_try_key)
-                    pub_after = (datetime.utcnow()-timedelta(days=days_sel)).isoformat()+"Z"
-                    _lang = REGION_LANG.get(region_code, "en")
-                    _res = yt.search().list(
-                        q=topic, part="snippet", type="video",
-                        maxResults=max_res, order="viewCount",
-                        publishedAfter=pub_after,
-                        regionCode=region_code,
-                        relevanceLanguage=_lang
-                    ).execute()
-                    _used_key = _try_key
-                    break  # Muvaffaqiyatli — keyingi key kerak emas
-                except Exception as _e:
-                    err_str = str(_e)
-                    if "quotaExceeded" in err_str or "403" in err_str:
-                        _key_error = f"⚠️ Key quota tugadi, keyingisi sinab ko'rilmoqda..."
-                        continue  # Keyingi keyni sinab ko'r
-                    else:
-                        _key_error = f"⚠️ Xato: {_e}"
-                        break
-
-            if _res is None:
-                if _key_error and "quotaExceeded" in str(_key_error):
-                    st.error("❌ Barcha API keylarning quotasi tugagan! Ertaga yoki yangi key bilan urinib ko'ring.")
-                else:
-                    st.error(_key_error or "❌ Noma'lum xato")
-            else:
-                if _key_error:
-                    st.info("ℹ️ Avvalgi key quota tugagan, zaxira key ishlatildi.")
-                res = _res
                 results = []
                 vid_ids = [item['id']['videoId'] for item in res.get('items',[])]
                 ch_ids  = [item['snippet']['channelId'] for item in res.get('items',[])]
 
-                vi_batch = yt.videos().list(part="statistics,snippet,topicDetails", id=",".join(vid_ids)).execute()
+                vi_batch = yt.videos().list(part="statistics,snippet", id=",".join(vid_ids)).execute()
                 vi_map = {i['id']:i for i in vi_batch.get('items',[])}
 
                 unique_chs = list(set(ch_ids))
@@ -1004,14 +956,11 @@ if _trigger:
                     thumbs   = vi.get('snippet',{}).get('thumbnails',{})
                     thumb    = (thumbs.get('maxres') or thumbs.get('high') or
                                 thumbs.get('medium') or thumbs.get('default',{})).get('url','')
-                    # Teglар
+                    # Teglar
                     tags = vi.get('snippet',{}).get('tags',[]) or []
                     tags_str = ", ".join(tags[:8]) if tags else "—"
-
-                    # Taxminiy daromad (RPM $1-5, o'rtacha $2.5)
-                    # Monetizatsiya: 1000 ta ko'rish uchun ~$2.5
-                    est_monthly = round(views / 1000 * 2.5, 1)
-                    # Kanal monetizatsiya ehtimoli (subs>1000 va views>4000)
+                    # Taxminiy daromad ($2.5 RPM)
+                    est_monthly  = round(views / 1000 * 2.5, 1)
                     is_monetized = subs >= 1000
 
                     if outl>=min_outl and views>=min_views:
@@ -1024,8 +973,8 @@ if _trigger:
                             "published":vi.get('snippet',{}).get('publishedAt',''),
                             "url":f"https://www.youtube.com/watch?v={vid}",
                             "ch_url":f"https://www.youtube.com/channel/{cid}",
-                            "tags": tags_str,
-                            "est_income": est_monthly,
+                            "tags":         tags_str,
+                            "est_income":   est_monthly,
                             "is_monetized": is_monetized,
                         })
 
@@ -1037,7 +986,7 @@ if _trigger:
                 now_uz = datetime.utcnow() + timedelta(hours=5)
                 new_entry = {
                     "Vaqt": now_uz.strftime("%H:%M"), "Sana": now_uz.strftime("%d.%m"),
-                    "Mavzu": topic, "Davlat": region_label,
+                    "Mavzu": topic, "Bozor": region_label,
                     "Davr": f"{days_sel} kun", "Topildi": len(results),
                 }
                 st.session_state.history.append(new_entry)
@@ -1057,7 +1006,8 @@ if _trigger:
                     if rem>0: st.toast(f"🎁 Yana {rem} ta tekin qidiruv qoldi")
                     else:     st.toast("⚠️ Oxirgi sinov ishlatildi!")
 
-
+            except Exception as e:
+                st.error(f"⚠️ Xato: {e}")
 
 # ══════════════════════════════════════════
 # TAB 1: TREND
@@ -1289,40 +1239,56 @@ with TAB_TABLE:
                     unsafe_allow_html=True)
         rows_html = []
         for _, row in df.iterrows():
-            engage  = round((row["likes"]+row["comments"])/max(row["views"],1)*100, 2)
-            score   = row["outlier"]
-            thumb   = html_mod.escape(str(row["thumbnail"]))
-            url     = html_mod.escape(str(row["url"]))
-            title   = html_mod.escape(str(row["title"])[:70])
-            channel = html_mod.escape(str(row["channel"])[:22])
-            sana    = html_mod.escape(uzb_date(str(row["published"])))
+            engage   = round((row["likes"]+row["comments"])/max(row["views"],1)*100, 2)
+            score    = row["outlier"]
+            thumb    = html_mod.escape(str(row["thumbnail"]))
+            url      = html_mod.escape(str(row["url"]))
+            title    = html_mod.escape(str(row["title"])[:65])
+            channel  = html_mod.escape(str(row["channel"])[:20])
+            sana     = html_mod.escape(uzb_date(str(row["published"])))
+            tags_s   = html_mod.escape(str(row.get("tags","—"))[:50])
+            est_inc  = row.get("est_income", 0)
+            is_mon   = row.get("is_monetized", False)
+            mon_txt  = "✅ Ha" if is_mon else "❌ Yo'q"
+            mon_clr  = "#2ed573" if is_mon else "#ff4757"
             if score>=100:   sc_color="#ff4757"
             elif score>=50:  sc_color="#ffa502"
             elif score>=20:  sc_color="#6c63ff"
             else:            sc_color="#2ed573"
             rows_html.append(
                 f"<tr>"
-                f"<td style='padding:8px;'><img src='{thumb}' style='width:88px;height:50px;object-fit:cover;border-radius:6px;'></td>"
-                f"<td style='padding:8px 10px;max-width:280px;'><a href='{url}' target='_blank' "
-                f"style='color:#9c93ff;text-decoration:none;font-weight:600;font-size:13px;line-height:1.4;'>{title}…</a></td>"
+                f"<td style='padding:8px;'><img src='{thumb}' style='width:80px;height:46px;object-fit:cover;border-radius:6px;'></td>"
+                f"<td style='padding:8px 10px;max-width:220px;'><a href='{url}' target='_blank' "
+                f"style='color:#9c93ff;text-decoration:none;font-weight:600;font-size:12px;line-height:1.4;'>{title}…</a></td>"
                 f"<td style='padding:8px 10px;color:#aaaacc;font-size:12px;'>{channel}</td>"
-                f"<td style='padding:8px 10px;color:{sc_color};font-weight:800;font-size:15px;'>{score}x</td>"
+                f"<td style='padding:8px 10px;color:{sc_color};font-weight:800;font-size:14px;'>{score}x</td>"
                 f"<td style='padding:8px 10px;color:#e8e8f0;font-weight:600;'>{fmt(row['views'])}</td>"
                 f"<td style='padding:8px 10px;color:#aaaacc;'>{fmt(row['subs'])}</td>"
                 f"<td style='padding:8px 10px;color:#aaaacc;'>{fmt(row['likes'])}</td>"
                 f"<td style='padding:8px 10px;color:#6c63ff;font-weight:700;'>{engage}%</td>"
+                f"<td style='padding:8px 10px;color:{mon_clr};font-weight:700;font-size:13px;'>{mon_txt}</td>"
+                f"<td style='padding:8px 10px;color:#2ed573;font-weight:700;'>${est_inc}</td>"
+                f"<td style='padding:8px 10px;color:#666688;font-size:11px;max-width:150px;'>{tags_s}</td>"
                 f"<td style='padding:8px 10px;color:#555577;font-size:12px;'>{sana}</td>"
                 f"</tr>"
             )
-        th = "padding:12px 10px;color:#9c93ff;font-size:11px;text-transform:uppercase;letter-spacing:1px;text-align:left;border-bottom:2px solid #2a2a4a;white-space:nowrap;"
+        th = "padding:10px 8px;color:#9c93ff;font-size:10px;text-transform:uppercase;letter-spacing:1px;text-align:left;border-bottom:2px solid #2a2a4a;white-space:nowrap;"
         table_html = (
             "<div style='overflow-x:auto;border-radius:14px;border:1px solid #1e1e2e;margin-top:12px;'>"
             "<table style='width:100%;border-collapse:collapse;background:#0f0f1a;font-family:Inter,sans-serif;'>"
             "<thead><tr style='background:#1a1a2e;'>"
-            f"<th style='{th}'>🖼</th><th style='{th}'>Sarlavha</th><th style='{th}'>Kanal</th>"
-            f"<th style='{th}'>⚡ Score</th><th style='{th}'>👁 Ko'rish</th>"
-            f"<th style='{th}'>👥 Obuna</th><th style='{th}'>👍 Layk</th>"
-            f"<th style='{th}'>💬 Engage</th><th style='{th}'>📅 Sana</th>"
+            f"<th style='{th}'>🖼</th>"
+            f"<th style='{th}'>Sarlavha</th>"
+            f"<th style='{th}'>Kanal</th>"
+            f"<th style='{th}'>⚡ Score</th>"
+            f"<th style='{th}'>👁 Ko\'rish</th>"
+            f"<th style='{th}'>👥 Obuna</th>"
+            f"<th style='{th}'>👍 Layk</th>"
+            f"<th style='{th}'>💬 Engage</th>"
+            f"<th style='{th}'>💰 Monetiz</th>"
+            f"<th style='{th}'>📈 ~Daromad</th>"
+            f"<th style='{th}'>🏷️ Teglar</th>"
+            f"<th style='{th}'>📅 Sana</th>"
             "</tr></thead><tbody>" + "".join(rows_html) + "</tbody></table></div>"
         )
         st.markdown(table_html, unsafe_allow_html=True)
@@ -1556,7 +1522,7 @@ with TAB_GUIDE:
                 <p style='color:#888899;font-size:12px;margin:0;line-height:1.5;'>
                     <b style="color:#fff;">US/GB</b> — eng katta bozor<br>
                     <b style="color:#fff;">UZ/RU</b> — mahalliy trendlar<br>
-                    Bir nishani har davlatda tekshiring!
+                    Bir nishani har bozorda tekshiring!
                 </p>
             </div>
         </div>
@@ -1607,9 +1573,9 @@ with TAB_GUIDE:
             <div style='display:flex;gap:10px;'><span style='color:#2ed573;font-size:14px;flex-shrink:0;'>✓</span>
             <p style='color:#ccccdd;font-size:13px;margin:0;'><b style="color:#fff;">Min Outlier Score</b> ni <b style="color:#ffa502;">50+</b> qo\'ying — faqat haqiqiy viral videolarni ko\'rish uchun</p></div>
             <div style='display:flex;gap:10px;'><span style='color:#2ed573;font-size:14px;flex-shrink:0;'>✓</span>
-            <p style='color:#ccccdd;font-size:13px;margin:0;'><b style="color:#fff;">7 kunlik davr + US davlati</b> — eng yangi trendlarni ko\'rish uchun ideal</p></div>
+            <p style='color:#ccccdd;font-size:13px;margin:0;'><b style="color:#fff;">7 kunlik davr + US bozori</b> — eng yangi trendlarni ko\'rish uchun ideal</p></div>
             <div style='display:flex;gap:10px;'><span style='color:#2ed573;font-size:14px;flex-shrink:0;'>✓</span>
-            <p style='color:#ccccdd;font-size:13px;margin:0;'>Bir nishani bir necha davlatda tekshiring — <b style="color:#fff;">US, GB, UZ</b> farqli trendlar ko\'rsatadi</p></div>
+            <p style='color:#ccccdd;font-size:13px;margin:0;'>Bir nishani bir necha bozorda tekshiring — <b style="color:#fff;">US, GB, UZ</b> farqli trendlar ko\'rsatadi</p></div>
             <div style='display:flex;gap:10px;'><span style='color:#2ed573;font-size:14px;flex-shrink:0;'>✓</span>
             <p style='color:#ccccdd;font-size:13px;margin:0;'><b style="color:#fff;">Engage% 2%+</b> bo\'lgan videolar — auditoriya juda faol nisha</p></div>
             <div style='display:flex;gap:10px;'><span style='color:#6c63ff;font-size:14px;flex-shrink:0;'>💡</span>
@@ -1619,155 +1585,3 @@ with TAB_GUIDE:
 
     </div>
     """, unsafe_allow_html=True)
-
-
-# ══════════════════════════════════════════
-# TAB 7: ADMIN PANEL
-# ══════════════════════════════════════════
-with TAB_ADMIN:
-    if not st.session_state.authenticated:
-        st.warning("🔒 Bu bo'lim faqat Admin uchun!")
-        st.stop()
-
-    st.markdown("<div class='section-title'>🛡️ Admin Boshqaruvi</div>",
-                unsafe_allow_html=True)
-
-    db  = load_db()
-    now = datetime.now()
-
-    all_users = {k:v for k,v in db.items()
-                 if k not in ("activation_codes",) and isinstance(v, dict)
-                 and "subscribed" in v}
-    codes = db.get("activation_codes", {})
-
-    active_users  = {k:v for k,v in all_users.items()
-                     if v.get("subscribed") and v.get("sub_until") and
-                     datetime.fromisoformat(v["sub_until"]) > now}
-    trial_users   = {k:v for k,v in all_users.items()
-                     if not v.get("subscribed") and v.get("trial_used",0) > 0}
-    used_codes    = {k:v for k,v in codes.items() if v.get("used")}
-    unused_codes  = {k:v for k,v in codes.items() if not v.get("used")}
-
-    # KPI
-    k1,k2,k3,k4,k5 = st.columns(5)
-    for col, label, val, color in [
-        (k1, "Jami Mijozlar",   len(all_users),   "purple"),
-        (k2, "Faol Obuna",      len(active_users), "green"),
-        (k3, "Sinov Ishlatgan", len(trial_users),  "gold"),
-        (k4, "Ishlatilgan Kod", len(used_codes),   "red"),
-        (k5, "Kutayotgan Kod",  len(unused_codes), "purple"),
-    ]:
-        col.markdown(f"""<div class='stat-card {color}'>
-            <div class='stat-label'>{label}</div>
-            <div class='stat-value'>{val}</div>
-        </div>""", unsafe_allow_html=True)
-
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    # Faol obunalar
-    st.markdown("<div class='section-title'>✅ Faol Obunalar</div>",
-                unsafe_allow_html=True)
-    if active_users:
-        rows = []
-        for uid_key, udata in active_users.items():
-            sub_dt    = datetime.fromisoformat(udata["sub_until"])
-            days_left = (sub_dt - now).days
-            tg_id     = udata.get("telegram_id", uid_key[:14]+"...")
-            orders    = udata.get("orders", [])
-            last_ord  = orders[-1].get("date","—")[:10] if orders else "—"
-            plan      = "1 yil" if days_left>300 else ("3 oy" if days_left>60 else "1 oy")
-            rows.append({
-                "TG / UID":      tg_id,
-                "Tugaydi":       sub_dt.strftime("%d.%m.%Y"),
-                "Qoldi (kun)":   days_left,
-                "Reja":          plan,
-                "Sotib olgan":   last_ord,
-                "Sinov":         str(udata.get("trial_used",0))+"/3",
-            })
-        st.dataframe(pd.DataFrame(rows).sort_values("Qoldi (kun)"),
-                     use_container_width=True, hide_index=True)
-    else:
-        st.info("Hozircha faol obuna yo'q.")
-
-    st.divider()
-
-    # Barcha foydalanuvchilar
-    st.markdown("<div class='section-title'>👥 Barcha Foydalanuvchilar</div>",
-                unsafe_allow_html=True)
-    all_rows = []
-    for uid_key, udata in all_users.items():
-        sub_str   = "—"
-        days_left = 0
-        status    = "❌ Yo'q"
-        if udata.get("subscribed") and udata.get("sub_until"):
-            sub_dt    = datetime.fromisoformat(udata["sub_until"])
-            days_left = (sub_dt - now).days
-            sub_str   = sub_dt.strftime("%d.%m.%Y")
-            status    = "✅ Faol" if days_left > 0 else "⏰ Tugagan"
-        elif udata.get("trial_used",0) > 0:
-            status = "🎁 Sinov ("+str(udata.get("trial_used",0))+"/3)"
-        tg_id = udata.get("telegram_id", uid_key[:14]+"...")
-        all_rows.append({
-            "TG / UID":    tg_id,
-            "Holat":       status,
-            "Tugaydi":     sub_str,
-            "Kun qoldi":   max(0, days_left),
-            "To'lovlar":   len(udata.get("orders",[])),
-            "Sinov":       str(udata.get("trial_used",0))+"/3",
-        })
-    if all_rows:
-        st.dataframe(pd.DataFrame(all_rows), use_container_width=True, hide_index=True)
-
-    st.divider()
-
-    # Kodlar
-    st.markdown("<div class='section-title'>🔑 Aktivatsiya Kodlari</div>",
-                unsafe_allow_html=True)
-    c1, c2 = st.columns(2)
-    c1.metric("Ishlatilgan", len(used_codes))
-    c2.metric("Kutayotgan",  len(unused_codes))
-
-    if unused_codes:
-        code_rows = []
-        for code, cdata in unused_codes.items():
-            exp = datetime.fromisoformat(cdata["expires"])
-            ql  = (exp - now).days
-            code_rows.append({
-                "Kod":     code,
-                "TG ID":   cdata.get("telegram_id","—"),
-                "Tugaydi": exp.strftime("%d.%m.%Y"),
-                "Qoldi":   str(ql)+" kun" if ql>0 else "Tugagan",
-            })
-        st.dataframe(pd.DataFrame(code_rows), use_container_width=True, hide_index=True)
-
-    st.divider()
-
-    # Qo'lda kod yaratish
-    st.markdown("<div class='section-title'>⚡ Qo'lda Kod Yaratish</div>",
-                unsafe_allow_html=True)
-    m1, m2, m3 = st.columns(3)
-    m_note = m1.text_input("Izoh:")
-    m_days = m2.number_input("Muddat (kun):", min_value=1, max_value=365, value=30)
-    m_tg   = m3.text_input("TG ID:")
-
-    if st.button("🔑 Yangi Kod Yaratish", use_container_width=True):
-        new_code = ""
-        existing = db.get("activation_codes", {})
-        for _ in range(100):
-            c = ''.join(random.choices(string.ascii_uppercase+string.digits, k=6))
-            if c not in existing:
-                new_code = c
-                break
-        if new_code:
-            db.setdefault("activation_codes",{})[new_code] = {
-                "telegram_id": m_tg or "manual",
-                "order_id":    f"MANUAL_{uuid.uuid4().hex[:6].upper()}",
-                "note":        m_note,
-                "created":     now.isoformat(),
-                "expires":     (now+timedelta(days=int(m_days))).isoformat(),
-                "used":        False,
-            }
-            save_db(db)
-            st.success(f"✅ Yangi kod: **`{new_code}`** — {m_days} kun")
-        else:
-            st.error("❌ Kod yaratib bo'lmadi")
