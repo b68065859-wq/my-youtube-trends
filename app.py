@@ -150,9 +150,21 @@ header[data-testid="stHeader"] {
 footer, footer *          { display: none !important; }
 .stApp > header           { display: none !important; }
 section[data-testid="stSidebarNav"] { display: none !important; }
-/* Pastki o'ng badge */
+/* Pastki o'ng badge — hammasi yashirish */
 div[class*="badge"], div[class*="Badge"] { display: none !important; }
 img[alt="Streamlit"] { display: none !important; }
+/* Streamlit community cloud belgilari */
+[class*="ActionButton"]   { display: none !important; }
+[class*="action-button"]  { display: none !important; }
+[data-testid="stActionButton"] { display: none !important; }
+a[href*="streamlit.io"]   { display: none !important; }
+a[href*="share.streamlit"] { display: none !important; }
+/* O'ng pastki fixed elementlar */
+.stApp > div > div:last-child > div:last-child > div:last-child { display: none !important; }
+iframe[title*="streamlit"] { display: none !important; }
+/* Har qanday fixed pastki element */
+div[style*="position: fixed"][style*="bottom"] { display: none !important; }
+div[style*="position:fixed"][style*="bottom"]  { display: none !important; }
 
 /* GLOBAL */
 html, body, .stApp, .main, .block-container {
@@ -332,20 +344,47 @@ hr { border-color: #1e1e2e !important; }
 </style>
 """, unsafe_allow_html=True)
 
-# Manage app JS hide
+# Manage app + Badge yashirish + UID localStorage
 st.markdown("""<script>
 (function(){
+  // 1. Manage app va belgilarni yashirish
   var css='[data-testid="stToolbar"],[data-testid="stStatusWidget"],[data-testid="stBottom"],'
     +'[data-testid="manage-app-button"],[title="Manage app"],[class*="viewerBadge"],'
-    +'[class*="StatusWidget"],#stDecoration,footer{display:none!important;}';
+    +'[class*="StatusWidget"],[class*="ActionButton"],[class*="action-button"],'
+    +'[data-testid="stActionButton"],a[href*="streamlit.io"],a[href*="share.streamlit"],'
+    +'#stDecoration,footer{display:none!important;visibility:hidden!important;}';
   var el=document.createElement('style');
   el.appendChild(document.createTextNode(css));
   document.head.appendChild(el);
+
+  // 2. MutationObserver bilan dinamik yashirish
   var mo=new MutationObserver(function(){
-    document.querySelectorAll('[data-testid="manage-app-button"],[title="Manage app"]')
-      .forEach(function(n){n.style.cssText='display:none!important;';});
+    document.querySelectorAll(
+      '[data-testid="manage-app-button"],[title="Manage app"],'
+      +'[class*="ActionButton"],[class*="action-button"],'
+      +'a[href*="streamlit.io"],a[href*="share.streamlit"]'
+    ).forEach(function(n){
+      n.style.cssText='display:none!important;visibility:hidden!important;';
+    });
   });
   mo.observe(document.body,{childList:true,subtree:true});
+
+  // 3. UID localStorage da saqlash — yangi oynada ham bir xil UID
+  try {
+    var urlParams = new URLSearchParams(window.location.search);
+    var urlUid = urlParams.get('uid');
+    var storedUid = localStorage.getItem('viral777_uid');
+
+    if (urlUid && urlUid.length > 10) {
+      // URL da UID bor — saqlash
+      localStorage.setItem('viral777_uid', urlUid);
+    } else if (storedUid && storedUid.length > 10 && !urlUid) {
+      // URL da UID yo'q, lekin localStorage da bor — URLga qo'shish
+      var newUrl = window.location.href + 
+        (window.location.search ? '&' : '?') + 'uid=' + storedUid;
+      window.location.replace(newUrl);
+    }
+  } catch(e) {}
 })();
 </script>""", unsafe_allow_html=True)
 
@@ -545,6 +584,107 @@ def create_excel(df, topic_name):
     return buf.getvalue()
 
 # ══════════════════════════════════════════
+# TELEGRAM LOGIN TIZIMI
+# ══════════════════════════════════════════
+TG_LOGIN_BOT_TOKEN = "8356461690:AAHlgC3e3SQCmCPKM7H7wO3YFhSD4HSNGlM"
+
+def gen_login_code():
+    """6 xonali login kodi yaratish"""
+    return ''.join(random.choices(string.digits, k=6))
+
+def save_login_code(code, tg_id, tg_name=""):
+    """Login kodni DB ga saqlash (5 daqiqa amal qiladi)"""
+    db = load_db()
+    db.setdefault("login_codes", {})[code] = {
+        "tg_id":   str(tg_id),
+        "tg_name": tg_name,
+        "created": datetime.now().isoformat(),
+        "expires": (datetime.now() + timedelta(minutes=5)).isoformat(),
+        "used":    False,
+    }
+    save_db(db)
+
+def verify_login_code(code):
+    """Login kodni tekshirish — (ok, tg_id, tg_name)"""
+    db = load_db()
+    codes = db.get("login_codes", {})
+    code = code.strip()
+    if code not in codes:
+        return False, None, None
+    c = codes[code]
+    if c.get("used"):
+        return False, None, None
+    if datetime.now() > datetime.fromisoformat(c["expires"]):
+        return False, None, None
+    # Ishlatilgan deb belgilash
+    codes[code]["used"] = True
+    db["login_codes"] = codes
+    save_db(db)
+    return True, c["tg_id"], c.get("tg_name","")
+
+def get_tg_uid(tg_id):
+    """Telegram ID dan UID yaratish"""
+    return f"tg_{tg_id}"
+
+def send_login_code(tg_id, code):
+    """Botdan login kodi yuborish"""
+    try:
+        import urllib.request
+        msg = ("🔐 *Viral 777 — Kirish Kodi*\n\n"
+               f"`{code}`\n\n"
+               "⏰ Kod *5 daqiqa* amal qiladi.\n\n"
+               "_Agar siz kirmagan bo\'lsangiz, e\'tibor bermang._")
+        url = f"https://api.telegram.org/bot{TG_LOGIN_BOT_TOKEN}/sendMessage"
+        data = json.dumps({"chat_id": tg_id, "text": msg, "parse_mode": "Markdown"}).encode()
+        req = urllib.request.Request(url, data=data,
+                                     headers={"Content-Type":"application/json"})
+        urllib.request.urlopen(req, timeout=5)
+        return True
+    except Exception as e:
+        return False
+
+def setup_login_bot():
+    """Login bot /start handler"""
+    if not BOT_AVAILABLE or not TG_LOGIN_BOT_TOKEN: return
+    try:
+        login_bot = telebot.TeleBot(TG_LOGIN_BOT_TOKEN, threaded=False)
+
+        @login_bot.message_handler(commands=['start', 'login', 'kirish'])
+        def handle_login(msg):
+            tg_id   = msg.from_user.id
+            tg_name = msg.from_user.first_name or "Foydalanuvchi"
+            code    = gen_login_code()
+            save_login_code(code, tg_id, tg_name)
+            login_bot.send_message(
+                tg_id,
+                f"👋 Salom, *{tg_name}*!\n\n"
+                f"🔐 *Viral 777 kirish kodi:*\n\n"
+                f"`{code}`\n\n"
+                f"⏰ Kod *5 daqiqa* amal qiladi.\n"
+                f"📌 Saytga qaytib kodni kiriting.",
+                parse_mode="Markdown"
+            )
+
+        @login_bot.message_handler(commands=['obuna', 'start_pay'])
+        def handle_pay(msg):
+            from_id = msg.from_user.id
+            login_bot.send_message(
+                from_id,
+                f"💰 *Obuna sotib olish:*\n\n"
+                f"📅 30 kun — {SUBSCRIPTION_PRICE:,} so'm\n\n"
+                f"To'lov qilish uchun admin bilan bog'laning.",
+                parse_mode="Markdown"
+            )
+
+        def poll_login():
+            while True:
+                try: login_bot.infinity_polling(timeout=15, long_polling_timeout=10)
+                except: time.sleep(5)
+
+        threading.Thread(target=poll_login, daemon=True).start()
+    except: pass
+
+# ══════════════════════════════════════════
 # PAYMENT URLS
 # ══════════════════════════════════════════
 def payme_url(oid):
@@ -634,6 +774,9 @@ def start_bot():
 if "bot_started" not in st.session_state:
     st.session_state.bot_started = True
     threading.Thread(target=start_bot, daemon=True).start()
+    # Login bot (alohida token)
+    if TG_LOGIN_BOT_TOKEN != cfg("BOT_TOKEN",""):
+        threading.Thread(target=setup_login_bot, daemon=True).start()
 
 # ══════════════════════════════════════════
 # HELPERS
@@ -659,6 +802,8 @@ def uzb_date(iso):
     except: return iso[:10]
 
 def get_uid():
+    """UID — URL da saqlanadi, yangi oynada ham bir xil bo'lishi uchun
+    foydalanuvchi UID ni URL orqali olib yuradi."""
     if "uid" in st.session_state and st.session_state.uid:
         return st.session_state.uid
     p = st.query_params.get("uid","")
@@ -688,7 +833,8 @@ REGIONS = {"🇺🇸 US":"US","🇬🇧 GB":"GB","🇺🇿 UZ":"UZ",
 for k,v in [("authenticated",False),("results",None),
              ("history",[]),("last_topic",""),("search_done",False),
              ("dark_mode",True),("current_topic","Survival"),
-             ("topic_key_ver",0),("do_search",False)]:
+             ("topic_key_ver",0),("do_search",False),
+             ("tg_logged_in",False),("tg_id",None),("tg_name","")]:
     if k not in st.session_state: st.session_state[k]=v
 
 # History fayldan tiklash
@@ -707,7 +853,12 @@ _admin_secret = "v777admin2024"
 if st.query_params.get("au","") == _admin_secret:
     st.session_state.authenticated = True
 
-uid = get_uid()
+# Agar Telegram login qilingan bo'lsa — TG ID asosida UID
+if st.session_state.get("tg_logged_in") and st.session_state.get("tg_id"):
+    uid = get_tg_uid(st.session_state.tg_id)
+    st.session_state.uid = uid
+else:
+    uid = get_uid()
 
 # Share URL
 try:
@@ -767,6 +918,55 @@ with st.sidebar:
             for k in ["au","admin"]:
                 if k in st.query_params: del st.query_params[k]
             st.rerun()
+
+    st.divider()
+
+    # ══ TELEGRAM LOGIN ══
+    if not st.session_state.authenticated:
+        if st.session_state.get("tg_logged_in"):
+            # Kirgan holat
+            tg_nm = st.session_state.get("tg_name","Foydalanuvchi")
+            st.markdown(
+                f"<div style='background:rgba(34,158,217,0.1);border:1px solid rgba(34,158,217,0.3);"
+                f"border-radius:10px;padding:10px 14px;margin-bottom:8px;'>"
+                f"<span style='color:#229ED9;font-weight:700;'>✈️ {tg_nm}</span>"
+                f"<span style='color:#555577;font-size:11px;'> bilan kirildi</span></div>",
+                unsafe_allow_html=True
+            )
+            if st.button("🚪 Chiqish", key="tg_logout", use_container_width=True):
+                st.session_state.tg_logged_in = False
+                st.session_state.tg_id   = None
+                st.session_state.tg_name = ""
+                st.rerun()
+        else:
+            # Login forma
+            _tg_bot_username = "viral777_bot"  # @BotFather da olgan username
+            st.markdown(
+                f"<a href='https://t.me/{_tg_bot_username}?start=login' target='_blank' "
+                f"style='display:block;text-align:center;background:#229ED9;color:#fff;"
+                f"border-radius:10px;padding:10px;font-weight:700;font-size:13px;"
+                f"text-decoration:none;margin-bottom:8px;'>✈️ Telegram orqali kirish</a>",
+                unsafe_allow_html=True
+            )
+            _lc = st.text_input("Bot bergan 6 xonali kodni kiriting:",
+                                 max_chars=6, placeholder="123456",
+                                 key="tg_login_code")
+            if st.button("✅ Kodni Tasdiqlash", key="tg_code_btn", use_container_width=True):
+                if len(_lc.strip()) == 6:
+                    ok, tg_id, tg_nm = verify_login_code(_lc.strip())
+                    if ok:
+                        st.session_state.tg_logged_in = True
+                        st.session_state.tg_id   = tg_id
+                        st.session_state.tg_name = tg_nm
+                        # UID ni TG ID ga bog'laymiz
+                        st.session_state.uid = get_tg_uid(tg_id)
+                        st.success(f"✅ Xush kelibsiz, {tg_nm}!")
+                        time.sleep(0.5)
+                        st.rerun()
+                    else:
+                        st.error("❌ Kod noto'g'ri yoki muddati tugagan!")
+                else:
+                    st.warning("6 xonali kod kiriting")
 
     st.divider()
 
@@ -842,8 +1042,14 @@ with st.sidebar:
                                   value=0, format_func=lambda x: fmt(x) if x>0 else "Hammasi")
     max_res   = st.select_slider("📦 Natijalar soni:", options=[10,25,50], value=25)
 
-    can_search = (st.session_state.authenticated or
-                  is_subscribed(uid) or get_trial(uid)>0)
+    # Qidirish uchun: admin YOKI tg_logged_in YOKI sinov qolgan
+    can_search = (
+        st.session_state.authenticated or
+        st.session_state.get("tg_logged_in", False) and (is_subscribed(uid) or get_trial(uid)>0)
+    )
+    # Telegram login bo'lmagan bo'lsa ham 1 ta bepul sinov
+    if not st.session_state.get("tg_logged_in") and not st.session_state.authenticated:
+        can_search = get_trial(uid) > 0
     search_btn = st.button("🚀 TAHLILNI BOSHLASH", disabled=not can_search,
                             use_container_width=True)
     if not can_search:
